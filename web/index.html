@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config Mode — AI Agent Config Analyzer</title>
+
+  <!-- Open Graph / social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="config-mode — AI Agent Config Analyzer" />
+  <meta property="og:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more platforms." />
+  <meta property="og:image" content="https://serdaraytac.github.io/config-mode/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="config-mode — AI Agent Config Analyzer" />
+  <meta name="twitter:description" content="Paste your CLAUDE.md or .cursorrules. Get a score, see what's wrong, get it fixed automatically." />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2230;
+      --border: #30363d;
+      --border-sub: #21262d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --crit: #f85149;
+      --warn: #d29922;
+      --info: #388bfd;
+      --ok: #3fb950;
+      --r: 8px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px; line-height: 1.5;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .hdr {
+      padding: 11px 18px; border-bottom: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center; gap: 10px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+    .logo em { color: var(--accent); font-style: normal; }
+    .ver {
+      font-size: 10px; color: var(--muted); background: var(--bg);
+      padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border);
+    }
+    .hdr-r { margin-left: auto; }
+    .gh-link {
+      color: var(--muted); font-size: 12px; text-decoration: none;
+      display: flex; align-items: center; gap: 5px; transition: color .12s;
+    }
+    .gh-link:hover { color: var(--text); }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .app { display: flex; height: calc(100vh - 47px); }
+
+    /* ── Left panel ──────────────────────────────────────────── */
+    .left {
+      width: 355px; min-width: 270px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--border); background: var(--surface);
+    }
+    .sec-lbl {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--muted); padding: 11px 12px 5px;
+    }
+
+    /* ── Platform grid ───────────────────────────────────────── */
+    .plat-grid {
+      padding: 0 9px 8px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+    }
+    .plat-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 7px 3px 5px; border: 1px solid var(--border-sub); border-radius: 7px;
+      background: var(--bg); color: var(--muted); cursor: pointer;
+      transition: border-color .12s, background .12s, color .12s;
+    }
+    .plat-btn:hover { border-color: var(--border); color: var(--text); background: var(--surface2); }
+    .plat-btn.on { border-color: var(--accent); background: rgba(88,166,255,.08); color: var(--text); }
+    .plat-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -.03em;
+    }
+    .plat-name { font-size: 9px; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 2px; }
+
+    /* ── Input area ──────────────────────────────────────────── */
+    .in-area { flex: 1; display: flex; flex-direction: column; padding: 0 9px 9px; gap: 6px; min-height: 0; }
+    .drop-z {
+      border: 1px dashed var(--border); border-radius: var(--r);
+      padding: 8px; text-align: center; font-size: 11px; color: var(--muted);
+      cursor: pointer; transition: all .12s; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .drop-z:hover, .drop-z.over { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,.04); }
+    #fileInput { display: none; }
+    .cfg-ta {
+      flex: 1; min-height: 100px;
+      background: var(--bg); border: 1px solid var(--border-sub); border-radius: var(--r);
+      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 11.5px; padding: 9px; resize: none; outline: none; line-height: 1.55;
+    }
+    .cfg-ta:focus { border-color: var(--accent); }
+    .cfg-ta::placeholder { color: #424a59; }
+    .analyze-btn {
+      padding: 9px; background: var(--accent); color: #0d1117;
+      font-weight: 600; font-size: 13px; border: none; border-radius: var(--r);
+      cursor: pointer; transition: background .12s; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .analyze-btn:hover:not(:disabled) { background: #79c0ff; }
+    .analyze-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ── Shared mode hint (left panel) ───────────────────────── */
+    .shared-mode-hint {
+      display: none; background: rgba(88,166,255,.05); border: 1px solid rgba(88,166,255,.15);
+      border-radius: 5px; padding: 7px 10px; font-size: 11px; color: var(--accent);
+      margin: 0 9px 4px; text-align: center; flex-shrink: 0;
+    }
+    body.shared-mode .shared-mode-hint { display: block; }
+
+    /* ── Right panel ─────────────────────────────────────────── */
+    .right { flex: 1; overflow-y: auto; padding: 20px; min-width: 0; }
+
+    /* ── Welcome state ───────────────────────────────────────── */
+    .welcome {
+      height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px; text-align: center;
+    }
+    .welcome-ic { font-size: 50px; line-height: 1; }
+    .welcome h2 { font-size: 19px; }
+    .welcome p { font-size: 13px; color: var(--muted); max-width: 360px; line-height: 1.65; }
+    .steps { margin-top: 6px; display: flex; flex-direction: column; gap: 7px; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+    .step-n {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--surface);
+      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+    }
+
+    /* ── Results ─────────────────────────────────────────────── */
+    .results { display: none; }
+    .results.show { display: block; }
+
+    /* ── Shared result state ─────────────────────────────────── */
+    #results[data-mode="shared"] .tab-bar { display: none; }
+    #results[data-mode="shared"] #pIssues { display: block; }
+    #results[data-mode="shared"] #pOpt { display: none !important; }
+
+    .shared-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.2);
+      border-radius: var(--r); padding: 9px 12px; margin-bottom: 14px; font-size: 12px;
+    }
+    .shared-banner-text { color: var(--muted); flex: 1; }
+    .shared-analyze-cta {
+      color: var(--accent); font-weight: 600; text-decoration: none; font-size: 12px;
+      white-space: nowrap;
+    }
+    .shared-analyze-cta:hover { text-decoration: underline; }
+    .shared-issue-badges { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0 6px; }
+    .issue-badge {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; padding: 3px 8px; font-size: 10px; font-family: monospace; color: var(--muted);
+    }
+    .shared-issue-hint { font-size: 11px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+    /* ── Share button ────────────────────────────────────────── */
+    .share-btn {
+      margin-left: auto; padding: 4px 10px; background: none;
+      border: 1px solid var(--border); border-radius: 5px; color: var(--muted);
+      font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+      transition: all .12s; white-space: nowrap;
+    }
+    .share-btn:hover { color: var(--text); border-color: var(--accent); }
+    .share-btn.copied { color: var(--ok); border-color: var(--ok); }
+
+    /* ── Stats ───────────────────────────────────────────────── */
+    .stats { display: flex; gap: 9px; margin-bottom: 14px; flex-wrap: wrap; }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 10px 14px; min-width: 90px;
+    }
+    .stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
+    .stat-val { font-size: 19px; font-weight: 700; line-height: 1; }
+    .stat-u { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 2px; }
+
+    /* ── Score card ──────────────────────────────────────────── */
+    .score-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 18px; display: flex; gap: 22px; align-items: center; margin-bottom: 16px;
+    }
+    .score-ring svg { display: block; }
+    .cats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .cat-row { display: flex; align-items: center; gap: 9px; }
+    .cat-lbl { font-size: 11px; color: var(--muted); width: 115px; flex-shrink: 0; }
+    .cat-track { flex: 1; height: 5px; background: var(--border-sub); border-radius: 3px; overflow: hidden; }
+    .cat-fill { height: 100%; border-radius: 3px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+    .cat-sc { font-size: 11px; font-weight: 600; width: 34px; text-align: right; flex-shrink: 0; }
+    .plat-pill {
+      font-size: 10px; color: var(--muted); background: var(--bg);
+      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border);
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .plat-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    .tab-btn {
+      padding: 7px 14px; background: none; border: none;
+      border-bottom: 2px solid transparent; color: var(--muted);
+      font-size: 12px; font-weight: 500; cursor: pointer; transition: all .12s; margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-bdg {
+      background: var(--bg); border: 1px solid var(--border);
+      padding: 1px 5px; border-radius: 99px; font-size: 9px; margin-left: 4px;
+    }
+
+    /* ── Issues ──────────────────────────────────────────────── */
+    .issue-list { display: flex; flex-direction: column; gap: 7px; }
+    .no-issues {
+      background: rgba(63,185,80,.07); border: 1px solid rgba(63,185,80,.25);
+      border-radius: var(--r); padding: 20px; text-align: center; color: var(--ok); font-size: 13px;
+    }
+    .issue {
+      background: var(--surface); border-radius: var(--r); padding: 9px 11px;
+      border-left: 3px solid; display: flex; gap: 9px; align-items: flex-start;
+    }
+    .issue.critical { border-left-color: var(--crit); }
+    .issue.warning  { border-left-color: var(--warn); }
+    .issue.info     { border-left-color: var(--info); }
+    .sev {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px;
+    }
+    .sev.critical { background: rgba(248,81,73,.15); color: var(--crit); }
+    .sev.warning  { background: rgba(210,153,34,.15); color: var(--warn); }
+    .sev.info     { background: rgba(56,139,253,.15); color: var(--info); }
+    .iss-body { flex: 1; min-width: 0; }
+    .iss-code { font-size: 9px; font-family: monospace; color: var(--muted); margin-bottom: 2px; }
+    .iss-msg { font-size: 12px; color: var(--text); line-height: 1.45; }
+    .iss-ctx {
+      margin-top: 5px; font-size: 10.5px; font-family: monospace; color: var(--muted);
+      background: var(--bg); padding: 3px 7px; border-radius: 4px;
+      white-space: pre-wrap; word-break: break-all;
+    }
+    .iss-line { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Optimized ───────────────────────────────────────────── */
+    .opt-wrap { display: flex; flex-direction: column; gap: 13px; }
+    .changes-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 13px;
+    }
+    .changes-title { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+    .change-item { display: flex; gap: 7px; font-size: 12px; color: var(--text); padding: 3px 0; }
+    .change-icon { color: var(--ok); flex-shrink: 0; margin-top: 1px; }
+    .opt-code-wrap { position: relative; }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px; z-index: 1;
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 4px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; transition: all .12s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .opt-ta {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r);
+      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 11.5px; padding: 12px; min-height: 260px; outline: none; resize: vertical; line-height: 1.55;
+    }
+
+    /* ── CTA section ─────────────────────────────────────────── */
+    .cta-section {
+      margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .cta-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 13px 15px;
+    }
+    .cta-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .cta-desc { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .cta-install-wrap {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
+      background: var(--bg); border: 1px solid var(--border-sub); border-radius: 6px; padding: 7px 10px;
+    }
+    .cta-install-cmd {
+      flex: 1; font-family: 'SF Mono','Fira Code',Consolas,monospace; font-size: 11px;
+      color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cta-copy-btn {
+      flex-shrink: 0; padding: 3px 9px; background: none; border: 1px solid var(--border);
+      border-radius: 4px; color: var(--muted); font-size: 11px; cursor: pointer; transition: all .12s;
+    }
+    .cta-copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .cta-usage-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
+    .cta-usage-cmd {
+      display: block; font-family: 'SF Mono','Fira Code',Consolas,monospace;
+      font-size: 11px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-sub);
+      border-radius: 5px; padding: 5px 9px; word-break: break-all;
+    }
+    .star-cta-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 15px; display: flex; align-items: center; gap: 10px;
+    }
+    .star-cta-link {
+      color: var(--text); text-decoration: none; font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px; transition: color .12s;
+    }
+    .star-cta-link:hover { color: var(--accent); }
+    .star-cta-hint { font-size: 11px; color: var(--muted); }
+
+    /* ── Misc ────────────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin {
+      width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.3);
+      border-top-color: #0d1117; border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    .err-box {
+      background: rgba(248,81,73,.08); border: 1px solid var(--crit);
+      border-radius: var(--r); padding: 13px; color: var(--crit); font-size: 13px;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 680px) {
+      .app { flex-direction: column; height: auto; }
+      .left { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid var(--border); }
+      .right { min-height: 70vh; }
+      .cta-install-cmd { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">config<em>mode</em></div>
+  <span class="ver">v1.0.4</span>
+  <div class="hdr-r">
+    <a href="https://github.com/serdaraytac/config-mode" target="_blank" rel="noopener" class="gh-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub
+    </a>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ── LEFT ─────────────────────────────────────────────── -->
+  <aside class="left">
+    <div class="sec-lbl">Platform</div>
+    <div class="plat-grid" id="platGrid"></div>
+
+    <div class="shared-mode-hint" id="sharedModeHint">Viewing shared result — paste yours to compare</div>
+
+    <div class="sec-lbl">Config Content</div>
+    <div class="in-area">
+      <div class="drop-z" id="dropZ">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+        Drop file or click to browse
+        <input type="file" id="fileInput" accept=".md,.txt,.json,.xml,.cursorrules,.clinerules,.windsurfrules,.mdc" />
+      </div>
+
+      <textarea
+        class="cfg-ta" id="cfgContent"
+        placeholder="# CLAUDE.md&#10;&#10;Paste config file content here...&#10;&#10;Supports: CLAUDE.md · .cursorrules · .clinerules&#10;AGENTS.md · GEMINI.md · copilot-instructions.md · ..."
+        spellcheck="false"
+      ></textarea>
+
+      <button class="analyze-btn" id="analyzeBtn">Analyze →</button>
+    </div>
+  </aside>
+
+  <!-- ── RIGHT ────────────────────────────────────────────── -->
+  <main class="right">
+
+    <div class="welcome" id="welcome">
+      <div class="welcome-ic">⚙</div>
+      <h2>Analyze your AI agent config</h2>
+      <p>Score, find issues, and get an optimized version of your AI coding agent configuration file — all in the browser.</p>
+      <div class="steps">
+        <div class="step"><div class="step-n">1</div>Select your platform</div>
+        <div class="step"><div class="step-n">2</div>Paste or drop your config file</div>
+        <div class="step"><div class="step-n">3</div>Click Analyze</div>
+      </div>
+    </div>
+
+    <div class="results" id="results">
+      <div class="stats" id="stats"></div>
+      <div class="score-card" id="scoreCard"></div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tIssues" onclick="switchTab('issues')">
+          Issues <span class="tab-bdg" id="issueBdg">0</span>
+        </button>
+        <button class="tab-btn" id="tOpt" onclick="switchTab('opt')">Optimized</button>
+      </div>
+
+      <div id="pIssues"><div class="issue-list" id="issueList"></div></div>
+      <div id="pOpt" style="display:none"><div class="opt-wrap" id="optWrap"></div></div>
+
+      <div class="cta-section">
+        <div class="cta-card">
+          <div class="cta-title">Run config-mode in your AI session</div>
+          <div class="cta-desc">Install once — get live feedback directly in Claude Code</div>
+          <div class="cta-install-wrap">
+            <code class="cta-install-cmd">claude mcp add config-mode -- npx -y @serdaraytac/config-mode</code>
+            <button class="cta-copy-btn" id="ctaCopyBtn" onclick="copyInstall()">Copy</button>
+          </div>
+          <div class="cta-usage-label">Then in Claude Code, type:</div>
+          <code class="cta-usage-cmd">analyze_config { "filepath": "./CLAUDE.md" }</code>
+        </div>
+        <div class="star-cta-card">
+          <a href="https://github.com/serdaraytac/config-mode" target="_blank" rel="noopener" class="star-cta-link">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/></svg>
+            Star on GitHub
+          </a>
+          <span class="star-cta-hint">Helps others discover config-mode</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="./bundle.js"></script>
+<script>
+// ── Platforms ─────────────────────────────────────────────────────────────
+const PLATS = [
+  { id:'claude',      name:'Claude Code', file:'CLAUDE.md',               color:'#d97706' },
+  { id:'cursor',      name:'Cursor',      file:'.cursor/rules/rules.md',  color:'#6366f1' },
+  { id:'cline',       name:'Cline',       file:'.clinerules',             color:'#059669' },
+  { id:'codex',       name:'Codex',       file:'AGENTS.md',               color:'#10b981' },
+  { id:'gemini',      name:'Gemini CLI',  file:'GEMINI.md',               color:'#4285f4' },
+  { id:'copilot',     name:'Copilot',     file:'copilot-instructions.md', color:'#8b5cf6' },
+  { id:'windsurf',    name:'Windsurf',    file:'.windsurfrules',          color:'#0ea5e9' },
+  { id:'amp',         name:'Amp',         file:'AGENTS.md',               color:'#f59e0b' },
+  { id:'opencode',    name:'OpenCode',    file:'AGENTS.md',               color:'#ef4444' },
+  { id:'warp',        name:'Warp',        file:'AGENTS.md',               color:'#7c3aed' },
+  { id:'kimi',        name:'Kimi Code',   file:'kimi.md',                 color:'#06b6d4' },
+  { id:'antigravity', name:'Antigravity', file:'AGENTS.md',               color:'#ec4899' },
+  { id:'firebender',  name:'Firebender',  file:'firebender.xml',          color:'#f97316' },
+];
+
+let sel = 'claude';
+
+function abbr(name) {
+  return name.replace('CLI','').replace('Code','').trim()
+    .split(/[\s-]/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function renderPlats() {
+  document.getElementById('platGrid').innerHTML = PLATS.map(p =>
+    `<button class="plat-btn${p.id===sel?' on':''}" onclick="pick('${p.id}')"
+      aria-pressed="${p.id===sel}" title="${p.name} — ${p.file}">
+      <div class="plat-icon" style="background:${p.color}">${abbr(p.name)}</div>
+      <div class="plat-name">${p.name}</div>
+    </button>`
+  ).join('');
+}
+
+function pick(id) { sel = id; renderPlats(); }
+
+// ── File drop / upload ─────────────────────────────────────────────────────
+const dz = document.getElementById('dropZ');
+const fi = document.getElementById('fileInput');
+
+dz.addEventListener('click', () => fi.click());
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+fi.addEventListener('change', () => { if (fi.files[0]) readFile(fi.files[0]); });
+
+function readFile(f) {
+  const r = new FileReader();
+  r.onload = e => { document.getElementById('cfgContent').value = e.target.result; };
+  r.readAsText(f);
+  const n = f.name.toLowerCase();
+  const m = PLATS.find(p => n === p.file.split('/').pop() || n.includes(p.id));
+  if (m) pick(m.id);
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.getElementById('tIssues').classList.toggle('active', t==='issues');
+  document.getElementById('tOpt').classList.toggle('active', t==='opt');
+  document.getElementById('pIssues').style.display = t==='issues' ? 'block' : 'none';
+  document.getElementById('pOpt').style.display = t==='opt' ? 'block' : 'none';
+}
+
+// ── Score ring SVG ─────────────────────────────────────────────────────────
+function scoreRing(s, grade) {
+  const R = 44, C = 2 * Math.PI * R;
+  const clr = s>=90 ? '#3fb950' : s>=75 ? '#58a6ff' : s>=60 ? '#d29922' : s>=40 ? '#f0883e' : '#f85149';
+  const dash = (s / 100 * C).toFixed(1);
+  return `<svg width="106" height="106" viewBox="0 0 106 106">
+    <circle cx="53" cy="53" r="${R}" fill="none" stroke="#21262d" stroke-width="9"/>
+    <circle cx="53" cy="53" r="${R}" fill="none" stroke="${clr}" stroke-width="9"
+      stroke-dasharray="${dash} ${C.toFixed(1)}" stroke-linecap="round"
+      transform="rotate(-90 53 53)"/>
+    <text x="53" y="48" text-anchor="middle" dominant-baseline="central"
+      fill="#e6edf3" font-size="26" font-weight="700" font-family="-apple-system,sans-serif">${s}</text>
+    <text x="53" y="67" text-anchor="middle" fill="${clr}" font-size="11" font-weight="600"
+      font-family="-apple-system,sans-serif">Grade ${grade}</text>
+  </svg>`;
+}
+
+// ── Category bar ───────────────────────────────────────────────────────────
+function catBar(label, val) {
+  const p = Math.round((val/25)*100);
+  const clr = p>=80 ? '#3fb950' : p>=60 ? '#d29922' : '#f85149';
+  return `<div class="cat-row">
+    <div class="cat-lbl">${label}</div>
+    <div class="cat-track"><div class="cat-fill" style="width:${p}%;background:${clr}"></div></div>
+    <div class="cat-sc" style="color:${clr}">${val}<span style="color:#8b949e;font-weight:400">/25</span></div>
+  </div>`;
+}
+
+// ── XSS escape ─────────────────────────────────────────────────────────────
+function x(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+// ── Score card HTML (shared by showResults + renderSharedResult) ───────────
+function scoreCardHtml(sc, plat) {
+  const platPill = plat
+    ? `<span class="plat-pill"><span class="plat-dot" style="background:${plat.color}"></span>${x(plat.name)}</span>`
+    : '';
+  const linkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>`;
+  return `
+    <div class="score-ring" role="img" aria-label="Score: ${sc.overall}/100, Grade ${sc.grade}">
+      ${scoreRing(sc.overall, sc.grade)}
+    </div>
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px">
+        <span style="font-weight:600;font-size:13px">Overall Score</span>
+        ${platPill}
+        <button class="share-btn" id="shareBtn" onclick="shareResult()"
+          aria-label="Share result — copies link to clipboard" title="Copy share link">
+          ${linkIcon} Share
+        </button>
+      </div>
+      <div class="cats">
+        ${catBar('Clarity', sc.categories.clarity)}
+        ${catBar('Structure', sc.categories.structure)}
+        ${catBar('Token Efficiency', sc.categories.tokenEfficiency)}
+        ${catBar('Coverage', sc.categories.coverage)}
+      </div>
+    </div>`;
+}
+
+// ── URL hash encoding ──────────────────────────────────────────────────────
+function encodeResult(sc, a) {
+  const { platform } = a;
+  const { overall: score, grade, categories: cats } = sc;
+  const issueMap = new Map();
+  for (const iss of a.issues) {
+    issueMap.set(iss.code, (issueMap.get(iss.code) || 0) + 1);
+  }
+  const issuesStr = [...issueMap.entries()]
+    .map(([code, cnt]) => `${encodeURIComponent(code)}:${cnt}`)
+    .join(',');
+  let hash = `v1:platform=${encodeURIComponent(platform)}&score=${score}&grade=${grade}&cats=${cats.clarity},${cats.structure},${cats.tokenEfficiency},${cats.coverage}`;
+  if (issuesStr) hash += `&issues=${issuesStr}`;
+  return hash;
+}
+
+// ── Share result ───────────────────────────────────────────────────────────
+function shareResult() {
+  const url = window.location.href;
+  const btn = document.getElementById('shareBtn');
+  const linkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>`;
+  const checkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg>`;
+
+  const doCopy = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      if (btn) {
+        btn.classList.add('copied');
+        btn.innerHTML = `${checkIcon} Copied!`;
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = `${linkIcon} Share`;
+        }, 2000);
+      }
+    }).catch(() => {
+      if (btn) {
+        btn.textContent = 'Copy failed';
+        setTimeout(() => { btn.innerHTML = `${linkIcon} Share`; }, 2000);
+      }
+    });
+  };
+
+  if (navigator.share) {
+    navigator.share({ title: 'config-mode score card', url }).catch(() => doCopy());
+  } else {
+    doCopy();
+  }
+}
+
+// ── Decode shared result from URL hash ────────────────────────────────────
+function decodeAndRenderSharedResult(hash) {
+  try {
+    const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+    if (!raw.startsWith('v1:')) return;
+    const qs = raw.slice(3);
+    const params = {};
+    for (const part of qs.split('&')) {
+      const eq = part.indexOf('=');
+      if (eq < 0) continue;
+      params[part.slice(0, eq)] = part.slice(eq + 1);
+    }
+    const platform = decodeURIComponent(params.platform || 'claude');
+    const score = parseInt(params.score, 10);
+    const grade = params.grade || 'F';
+    if (isNaN(score) || score < 0 || score > 100) return;
+
+    const catsParts = (params.cats || '0,0,0,0').split(',').map(n => {
+      const v = parseInt(n, 10);
+      return isNaN(v) ? 0 : Math.max(0, Math.min(25, v));
+    });
+    const [clarity, structure, tokenEfficiency, coverage] = catsParts;
+
+    const issues = [];
+    if (params.issues) {
+      for (const part of params.issues.split(',')) {
+        if (!part) continue;
+        const colon = part.lastIndexOf(':');
+        if (colon < 0) continue;
+        const code = decodeURIComponent(part.slice(0, colon));
+        const cnt = parseInt(part.slice(colon + 1), 10) || 1;
+        if (code) issues.push({ code, count: cnt });
+      }
+    }
+
+    // Pre-select the shared platform
+    pick(platform);
+
+    const sc = { overall: score, grade, categories: { clarity, structure, tokenEfficiency, coverage } };
+    const plat = PLATS.find(p => p.id === platform);
+    const platName = plat ? plat.name : platform;
+
+    document.getElementById('welcome').style.display = 'none';
+    const resultsEl = document.getElementById('results');
+    resultsEl.className = 'results show';
+    resultsEl.dataset.mode = 'shared';
+    document.body.classList.add('shared-mode');
+
+    document.getElementById('stats').innerHTML = `
+      <div class="shared-banner">
+        <span class="shared-banner-text">Shared score — ${x(platName)} config, Grade ${x(grade)} (${score})</span>
+        <a class="shared-analyze-cta" href="#" onclick="focusTextarea();return false">Analyze yours →</a>
+      </div>`;
+
+    document.getElementById('scoreCard').innerHTML = scoreCardHtml(sc, plat);
+
+    const totalIssues = issues.reduce((s, i) => s + i.count, 0);
+    document.getElementById('issueBdg').textContent = totalIssues;
+    document.getElementById('issueList').innerHTML = totalIssues === 0
+      ? `<div class="no-issues">No issues found in this config</div>`
+      : `<div class="shared-issue-badges">${issues.map(i => `<span class="issue-badge">${i.count}&times; ${x(i.code)}</span>`).join('')}</div>
+         <p class="shared-issue-hint">Paste your config above to see full issue details and get an optimized version</p>`;
+
+    document.getElementById('optWrap').innerHTML = '';
+    document.getElementById('analyzeBtn').textContent = 'Analyze Mine →';
+  } catch(_) {
+    // malformed hash → show welcome (no-op)
+  }
+}
+
+function focusTextarea() {
+  const ta = document.getElementById('cfgContent');
+  ta.focus();
+  ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function copyInstall() {
+  const cmd = 'claude mcp add config-mode -- npx -y @serdaraytac/config-mode';
+  const btn = document.getElementById('ctaCopyBtn');
+  navigator.clipboard.writeText(cmd).then(() => {
+    if (btn) {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    }
+  }).catch(() => {
+    if (btn) {
+      btn.textContent = 'Copy failed';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    }
+  });
+}
+
+// ── Render results ─────────────────────────────────────────────────────────
+function showResults(data) {
+  const { analysis: a, score: sc, optimization: opt } = data;
+
+  document.getElementById('welcome').style.display = 'none';
+  const resultsEl = document.getElementById('results');
+  resultsEl.className = 'results show';
+  delete resultsEl.dataset.mode;
+  document.body.classList.remove('shared-mode');
+  document.getElementById('analyzeBtn').textContent = 'Analyze →';
+
+  // Update URL hash to reflect current analysis result
+  window.location.hash = encodeResult(sc, a);
+
+  // Stats
+  const costHtml = a.estimatedCostUsd === 0
+    ? `<span style="color:#3fb950">Free</span>`
+    : `$${(a.estimatedCostUsd * 1000).toFixed(4)}<span class="stat-u">/1k sess</span>`;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat">
+      <div class="stat-lbl">Tokens</div>
+      <div class="stat-val">${a.tokenCount.toLocaleString()}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Cost / session</div>
+      <div class="stat-val">${costHtml}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Issues</div>
+      <div class="stat-val" style="color:${a.issues.length>0?'#f85149':'#3fb950'}">${a.issues.length}</div>
+    </div>`;
+
+  // Score card
+  const plat = PLATS.find(p => p.id === a.platform);
+  document.getElementById('scoreCard').innerHTML = scoreCardHtml(sc, plat);
+
+  // Issues (sorted critical → warning → info)
+  const ORDER = { critical:0, warning:1, info:2 };
+  const issues = [...a.issues].sort((x,y) => (ORDER[x.severity]??3)-(ORDER[y.severity]??3));
+
+  document.getElementById('issueBdg').textContent = issues.length;
+
+  document.getElementById('issueList').innerHTML = issues.length === 0
+    ? `<div class="no-issues">&#10003; No issues found — config looks well-structured!</div>`
+    : issues.map(iss => `
+        <div class="issue ${iss.severity}">
+          <span class="sev ${iss.severity}">${iss.severity}</span>
+          <div class="iss-body">
+            <div class="iss-code">${x(iss.code)}</div>
+            <div class="iss-msg">${x(iss.message)}</div>
+            ${iss.context ? `<div class="iss-ctx">${x(iss.context)}</div>` : ''}
+            ${iss.line    ? `<div class="iss-line">Line ${iss.line}</div>` : ''}
+          </div>
+        </div>`).join('');
+
+  // Optimized
+  document.getElementById('optWrap').innerHTML = `
+    <div class="changes-card">
+      <div class="changes-title">Applied Changes (${opt.changesSummary.length})</div>
+      ${opt.changesSummary.map(c => `<div class="change-item"><span class="change-icon">&#10003;</span>${x(c)}</div>`).join('')}
+    </div>
+    <div class="opt-code-wrap">
+      <button class="copy-btn" id="copyBtn" onclick="doCopy()">Copy</button>
+      <textarea class="opt-ta" id="optTa" readonly>${x(opt.optimizedContent)}</textarea>
+    </div>`;
+
+  switchTab('issues');
+}
+
+function doCopy() {
+  navigator.clipboard.writeText(document.getElementById('optTa').value).then(() => {
+    const b = document.getElementById('copyBtn');
+    b.textContent = 'Copied!';
+    setTimeout(() => { b.textContent = 'Copy'; }, 2000);
+  });
+}
+
+// ── Analyze ────────────────────────────────────────────────────────────────
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  const content = document.getElementById('cfgContent').value.trim();
+  if (!content) { alert('Paste your config file content first.'); return; }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Analyzing...';
+
+  // yield so spinner renders before synchronous work
+  setTimeout(() => {
+    try {
+      const plat = PLATS.find(p => p.id === sel);
+      let config = ConfigMode.parseConfig(plat ? plat.file : 'CLAUDE.md', content);
+      // Override platform: shared filenames (AGENTS.md) must use the correct profile
+      config = Object.assign({}, config, { platform: sel });
+
+      const analysis     = ConfigMode.analyze(config);
+      const score        = ConfigMode.score(analysis);
+      const optimization = ConfigMode.optimize(config, analysis, score);
+
+      showResults({ analysis, score, optimization });
+    } catch(e) {
+      document.getElementById('welcome').style.display = 'none';
+      document.getElementById('results').className = 'results show';
+      document.getElementById('stats').innerHTML =
+        `<div class="err-box">Error: ${x(String(e))}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Analyze →';
+    }
+  }, 0);
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+renderPlats();
+if (window.location.hash) decodeAndRenderSharedResult(window.location.hash);
+</script>
+</body>
+</html>

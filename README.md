@@ -90,7 +90,26 @@ Good configs = controllable AI.
 
 ## Quick Start
 
-Add to your MCP config:
+**Claude Code (one command):**
+
+```
+claude mcp add config-mode -- npx -y @serdaraytac/config-mode
+```
+
+Restart Claude Code, then verify the install:
+
+```
+scan_project { "directory": "." }
+```
+
+In Claude Code, type these in the chat window:
+
+```
+analyze_config  { "filepath": "./AGENTS.md" }
+optimize_config { "filepath": "./AGENTS.md", "write": true }
+```
+
+**Other clients — add to your MCP config:**
 
 ```json
 {
@@ -103,24 +122,11 @@ Add to your MCP config:
 }
 ```
 
-Scan your project:
-
-```
-scan_project { "directory": "." }
-```
-
-Analyze & fix:
-
-```
-analyze_config  { "filepath": "./AGENTS.md" }
-optimize_config { "filepath": "./AGENTS.md", "write": true }
-```
-
 **MCP config location by client:**
 
 | Client | Config file |
 |---|---|
-| Claude Code | `~/.claude/claude_desktop_config.json` or `claude mcp add config-mode -- npx -y @serdaraytac/config-mode` |
+| Claude Code | `claude mcp add config-mode -- npx -y @serdaraytac/config-mode` |
 | Cursor | `.cursor/mcp.json` or `~/.cursor/mcp.json` |
 | Cline | VS Code settings → Cline MCP Servers |
 | Windsurf | `~/.codeium/windsurf/mcp_config.json` |
@@ -266,7 +272,7 @@ analyze_config  →  score each file, see what's wrong
 optimize_config →  fix issues automatically, write back to disk
 ```
 
-`scan_project` finds files inside `.cursor/rules/`, `.clinerules/`, `.github/instructions/`, `.gemini/`, `.warp/`, `.amp/`, and `.antigravity/` — not just root-level files.
+`scan_project` finds files inside `.cursor/rules/`, `.clinerules/`, `.github/instructions/`, `.gemini/`, `.warp/`, `.amp/`, and `.antigravity/` — not just root-level files. It scans one level deep by default; symlinks are not followed.
 
 `analyze_config` accepts a filepath or inline content:
 
@@ -275,6 +281,24 @@ optimize_config →  fix issues automatically, write back to disk
 ```
 
 `optimize_config` returns the fixed content with a before/after score. Add `"write": true` to save to disk.
+
+`optimize_config` response shape:
+
+```json
+{
+  "platform": "claude",
+  "before": { "overall": 29, "grade": "F" },
+  "after":  { "overall": 68, "grade": "C" },
+  "changesSummary": ["Rewrote 3 vague rules", "Added Commands section"],
+  "optimizedContent": "# CLAUDE.md\n..."
+}
+```
+
+If a file path is not found, tools return:
+
+```json
+{ "error": "File not found: ./CLAUDE.md" }
+```
 
 ---
 
