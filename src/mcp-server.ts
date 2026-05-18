@@ -52,7 +52,7 @@ const WILDCARD_DIRS = [
 ];
 
 const server = new Server(
-  { name: "config-mode", version: "1.0.3" },
+  { name: "agentsitter", version: "1.0.4" },
   { capabilities: { tools: {} } }
 );
 

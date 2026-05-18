@@ -1,8 +1,8 @@
-# config-mode
+# Agentsitter
 
 **Your AI agent is ignoring your rules — and you don’t even know it.**
 
-config-mode finds why, scores it, and fixes it automatically.
+agentsitter finds why, scores it, and fixes it automatically.
 
 ---
 
@@ -24,9 +24,9 @@ because your config files are.
 
 ---
 
-## What config-mode does
+## What Agentsitter does
 
-config-mode analyzes your AI agent configs and fixes them.
+agentsitter analyzes your AI agent configs and fixes them.
 
 - **Scores** configs (0–100) across clarity, structure, token efficiency, coverage
 - **Detects vague rules** LLMs can’t execute
@@ -93,7 +93,7 @@ Good configs = controllable AI.
 **Claude Code (one command):**
 
 ```
-claude mcp add config-mode -- npx -y @serdaraytac/config-mode
+claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter
 ```
 
 Restart Claude Code, then verify the install:
@@ -114,9 +114,9 @@ optimize_config { "filepath": "./AGENTS.md", "write": true }
 ```json
 {
   "mcpServers": {
-    "config-mode": {
+    "agentsitter": {
       "command": "npx",
-      "args": ["-y", "@serdaraytac/config-mode"]
+      "args": ["-y", "@serdaraytac/agentsitter"]
     }
   }
 }
@@ -126,7 +126,7 @@ optimize_config { "filepath": "./AGENTS.md", "write": true }
 
 | Client | Config file |
 |---|---|
-| Claude Code | `claude mcp add config-mode -- npx -y @serdaraytac/config-mode` |
+| Claude Code | `claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter` |
 | Cursor | `.cursor/mcp.json` or `~/.cursor/mcp.json` |
 | Cline | VS Code settings → Cline MCP Servers |
 | Windsurf | `~/.codeium/windsurf/mcp_config.json` |
@@ -236,7 +236,7 @@ The optimizer doesn't just flag — it rewrites:
 
 ## How it works
 
-config-mode combines:
+agentsitter combines:
 
 - Linguistic analysis (7 vagueness categories)
 - Platform-specific validation rules

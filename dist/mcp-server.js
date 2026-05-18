@@ -44,7 +44,7 @@ const WILDCARD_DIRS = [
     ".clinerules",
     ".github/instructions",
 ];
-const server = new Server({ name: "agent-lint", version: "1.0.3" }, { capabilities: { tools: {} } });
+const server = new Server({ name: "agentsitter", version: "1.0.4" }, { capabilities: { tools: {} } });
 async function resolveInput(args) {
     if (typeof args.filepath === "string") {
         const abs = resolve(args.filepath);

@@ -1,14 +1,15 @@
 {
-  "name": "@serdaraytac/config-mode",
-  "version": "1.0.3",
+  "name": "@serdaraytac/agentsitter",
+  "version": "1.0.4",
   "description": "Analyze, score, and optimize AI coding agent config files",
   "main": "dist/mcp-server.js",
   "bin": {
-    "config-mode": "dist/mcp-server.js"
+    "agentsitter": "dist/mcp-server.js"
   },
   "scripts": {
     "prepare": "npm run build",
     "build": "tsc",
+    "build:web": "esbuild src/browser.ts --bundle --platform=browser --format=iife --global-name=ConfigMode --outfile=web/bundle.js --minify",
     "dev": "tsx src/mcp-server.ts",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -33,11 +34,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/serdaraytac/config-mode.git"
+    "url": "git+https://github.com/serdaraytac/agentsitter.git"
   },
-  "homepage": "https://github.com/serdaraytac/config-mode#readme",
+  "homepage": "https://github.com/serdaraytac/agentsitter#readme",
   "bugs": {
-    "url": "https://github.com/serdaraytac/config-mode/issues"
+    "url": "https://github.com/serdaraytac/agentsitter/issues"
   },
   "engines": {
     "node": ">=22"
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.7.0",
+    "esbuild": "^0.25.12",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"

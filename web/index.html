@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Config Mode — AI Agent Config Analyzer</title>
+  <title>Agentsitter — AI Agent Config Analyzer</title>
 
   <!-- Open Graph / social sharing -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="config-mode — AI Agent Config Analyzer" />
+  <meta property="og:title" content="agentsitter — AI Agent Config Analyzer" />
   <meta property="og:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more platforms." />
-  <meta property="og:image" content="https://serdaraytac.github.io/config-mode/og-image.png" />
+  <meta property="og:image" content="https://serdaraytac.github.io/agentsitter/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="config-mode — AI Agent Config Analyzer" />
+  <meta name="twitter:title" content="agentsitter — AI Agent Config Analyzer" />
   <meta name="twitter:description" content="Paste your CLAUDE.md or .cursorrules. Get a score, see what's wrong, get it fixed automatically." />
 
   <style>
@@ -347,7 +347,7 @@
   <div class="logo">config<em>mode</em></div>
   <span class="ver">v1.0.4</span>
   <div class="hdr-r">
-    <a href="https://github.com/serdaraytac/config-mode" target="_blank" rel="noopener" class="gh-link">
+    <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="gh-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
       GitHub
     </a>
@@ -411,21 +411,21 @@
 
       <div class="cta-section">
         <div class="cta-card">
-          <div class="cta-title">Run config-mode in your AI session</div>
+          <div class="cta-title">Run agentsitter in your AI session</div>
           <div class="cta-desc">Install once — get live feedback directly in Claude Code</div>
           <div class="cta-install-wrap">
-            <code class="cta-install-cmd">claude mcp add config-mode -- npx -y @serdaraytac/config-mode</code>
+            <code class="cta-install-cmd">claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter</code>
             <button class="cta-copy-btn" id="ctaCopyBtn" onclick="copyInstall()">Copy</button>
           </div>
           <div class="cta-usage-label">Then in Claude Code, type:</div>
           <code class="cta-usage-cmd">analyze_config { "filepath": "./CLAUDE.md" }</code>
         </div>
         <div class="star-cta-card">
-          <a href="https://github.com/serdaraytac/config-mode" target="_blank" rel="noopener" class="star-cta-link">
+          <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="star-cta-link">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/></svg>
             Star on GitHub
           </a>
-          <span class="star-cta-hint">Helps others discover config-mode</span>
+          <span class="star-cta-hint">Helps others discover agentsitter</span>
         </div>
       </div>
     </div>
@@ -609,7 +609,7 @@ function shareResult() {
   };
 
   if (navigator.share) {
-    navigator.share({ title: 'config-mode score card', url }).catch(() => doCopy());
+    navigator.share({ title: 'agentsitter score card', url }).catch(() => doCopy());
   } else {
     doCopy();
   }
@@ -692,7 +692,7 @@ function focusTextarea() {
 }
 
 function copyInstall() {
-  const cmd = 'claude mcp add config-mode -- npx -y @serdaraytac/config-mode';
+  const cmd = 'claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter';
   const btn = document.getElementById('ctaCopyBtn');
   navigator.clipboard.writeText(cmd).then(() => {
     if (btn) {
