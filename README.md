@@ -1,5 +1,8 @@
 # Agentsitter
 
+![License](https://img.shields.io/badge/license-ELv2-blue)
+![Last Commit](https://img.shields.io/github/last-commit/serdaraytac/agentsitter)
+
 **Your AI agent is ignoring your rules — and you don’t even know it.**
 
 agentsitter finds why, scores it, and fixes it automatically.
