@@ -46,3 +46,15 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
+
+
+## Commands
+```bash
+npm run build       # compile TypeScript → dist/
+npm run build:web   # bundle browser script → web/scoring/bundle.js
+npm test            # run all 230 unit tests (vitest)
+npm run dev         # run MCP server in dev mode (tsx)
+```
+
+## Style
+<!-- Formatting, naming, and style guide references -->
