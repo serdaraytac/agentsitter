@@ -1,8 +1,6 @@
 <div align="center">
 
-# 🍼 agentsitter
-
-*Fix and maintain your AI agent behavior*
+<h1 style="font-size:2.5em">Agent Sitter</h1>
 
 ![License](https://img.shields.io/badge/license-ELv2-blue)
 ![Last Commit](https://img.shields.io/github/last-commit/serdaraytac/agentsitter)
