@@ -115,6 +115,62 @@ describe('encodeResult', () => {
   });
 });
 
+// ── buildBadgeUrl ─────────────────────────────────────────────────────────
+
+function buildBadgeUrl(score, grade) {
+  const colorMap = { A:'brightgreen', B:'blue', C:'yellow', D:'orange', F:'red' };
+  const color = colorMap[grade] || 'lightgrey';
+  return `https://img.shields.io/badge/agentsitter-${score}%2F${grade}-${color}`;
+}
+
+describe('buildBadgeUrl', () => {
+  it('grade A → brightgreen', () => {
+    expect(buildBadgeUrl(94, 'A')).toBe('https://img.shields.io/badge/agentsitter-94%2FA-brightgreen');
+  });
+  it('grade B → blue', () => {
+    expect(buildBadgeUrl(78, 'B')).toBe('https://img.shields.io/badge/agentsitter-78%2FB-blue');
+  });
+  it('grade C → yellow', () => {
+    expect(buildBadgeUrl(61, 'C')).toBe('https://img.shields.io/badge/agentsitter-61%2FC-yellow');
+  });
+  it('grade D → orange', () => {
+    expect(buildBadgeUrl(45, 'D')).toBe('https://img.shields.io/badge/agentsitter-45%2FD-orange');
+  });
+  it('grade F → red', () => {
+    expect(buildBadgeUrl(20, 'F')).toBe('https://img.shields.io/badge/agentsitter-20%2FF-red');
+  });
+});
+
+// ── buildTweetText ────────────────────────────────────────────────────────
+
+const PLATS_TEST = [
+  { id:'claude', name:'Claude Code' },
+  { id:'cursor', name:'Cursor' },
+];
+
+function buildTweetText(platform, score, grade) {
+  const platName = PLATS_TEST.find(p => p.id === platform)?.name || platform;
+  return `I scored my ${platName} config: ${score}/100 (Grade ${grade}) with agentsitter 🍼 Try yours: https://serdaraytac.github.io/agentsitter/demo/`;
+}
+
+describe('buildTweetText', () => {
+  it('includes platform name', () => {
+    expect(buildTweetText('claude', 87, 'A')).toContain('Claude Code');
+  });
+  it('includes score', () => {
+    expect(buildTweetText('claude', 87, 'A')).toContain('87/100');
+  });
+  it('includes grade', () => {
+    expect(buildTweetText('claude', 87, 'A')).toContain('Grade A');
+  });
+  it('includes demo URL', () => {
+    expect(buildTweetText('cursor', 72, 'B')).toContain('https://serdaraytac.github.io/agentsitter/demo/');
+  });
+  it('falls back to platform id for unknown platform', () => {
+    expect(buildTweetText('unknown_plat', 50, 'C')).toContain('unknown_plat');
+  });
+});
+
 // ── decodeResultHash ──────────────────────────────────────────────────────
 
 describe('decodeResultHash', () => {

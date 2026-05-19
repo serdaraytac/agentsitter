@@ -1,6 +1,6 @@
 {
   "name": "@serdaraytac/agentsitter",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Analyze, score, and optimize AI coding agent config files",
   "main": "dist/mcp-server.js",
   "bin": {
@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "tsc",
-    "build:web": "esbuild src/browser.ts --bundle --platform=browser --format=iife --global-name=ConfigMode --outfile=web/bundle.js --minify",
+    "build:web": "esbuild src/browser.ts --bundle --platform=browser --format=iife --global-name=ConfigMode --outfile=web/demo/bundle.js --minify",
     "dev": "tsx src/mcp-server.ts",
     "test": "vitest run",
     "test:watch": "vitest"

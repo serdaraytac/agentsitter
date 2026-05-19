@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agentsitter — AI Agent Config Analyzer</title>
+  <title>agentsitter — AI Agent Config Analyzer</title>
 
   <!-- Open Graph / social sharing -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="agentsitter — AI Agent Config Analyzer" />
-  <meta property="og:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more platforms." />
+  <meta property="og:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more." />
   <meta property="og:image" content="https://serdaraytac.github.io/agentsitter/og-image.png" />
+  <meta property="og:url" content="https://serdaraytac.github.io/agentsitter/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="agentsitter — AI Agent Config Analyzer" />
-  <meta name="twitter:description" content="Paste your CLAUDE.md or .cursorrules. Get a score, see what's wrong, get it fixed automatically." />
+  <meta name="twitter:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more." />
+
+  <!-- JetBrains Mono: hero display font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,803 +31,321 @@
       --border-sub: #21262d;
       --text: #e6edf3;
       --muted: #8b949e;
-      --accent: #58a6ff;
-      --crit: #f85149;
-      --warn: #d29922;
-      --info: #388bfd;
+      --accent: #d97706;
       --ok: #3fb950;
       --r: 8px;
     }
 
-    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
     body {
       background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px; line-height: 1.5;
+      font-size: 15px; line-height: 1.6;
     }
 
     /* ── Header ──────────────────────────────────────────────── */
     .hdr {
-      padding: 11px 18px; border-bottom: 1px solid var(--border);
+      padding: 14px 24px; border-bottom: 1px solid var(--border);
       background: var(--surface); display: flex; align-items: center; gap: 10px;
       position: sticky; top: 0; z-index: 10;
     }
-    .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+    .logo { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; text-decoration: none; color: var(--text); }
     .logo em { color: var(--accent); font-style: normal; }
     .ver {
       font-size: 10px; color: var(--muted); background: var(--bg);
       padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border);
     }
-    .hdr-r { margin-left: auto; }
+    .hdr-r { margin-left: auto; display: flex; align-items: center; gap: 16px; }
     .gh-link {
       color: var(--muted); font-size: 12px; text-decoration: none;
       display: flex; align-items: center; gap: 5px; transition: color .12s;
     }
     .gh-link:hover { color: var(--text); }
+    .hdr-cta {
+      padding: 6px 16px; background: var(--accent); color: #0d1117;
+      font-size: 13px; font-weight: 700; border-radius: 6px; text-decoration: none;
+      transition: filter .12s; white-space: nowrap;
+    }
+    .hdr-cta:hover { filter: brightness(1.1); }
 
-    /* ── Layout ──────────────────────────────────────────────── */
-    .app { display: flex; height: calc(100vh - 47px); }
+    /* ── Hero ────────────────────────────────────────────────── */
+    .hero {
+      text-align: center; padding: 80px 24px 64px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-emoji { font-size: 52px; line-height: 1; margin-bottom: 24px; }
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.75rem, 4vw, 3.25rem);
+      font-weight: 700; line-height: 1.2; letter-spacing: -0.03em;
+      color: var(--text); max-width: 760px; margin: 0 auto 16px;
+    }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .hero-desc {
+      font-size: 14px; color: var(--muted); margin-bottom: 36px; opacity: .8;
+    }
+    .hero-cta {
+      display: inline-block; padding: 14px 36px;
+      background: var(--accent); color: #0d1117;
+      font-size: 16px; font-weight: 700; border-radius: var(--r);
+      text-decoration: none; transition: filter .12s;
+      min-height: 44px; display: inline-flex; align-items: center;
+    }
+    .hero-cta:hover { filter: brightness(1.1); }
+    .hero-secondary {
+      margin-top: 14px; display: flex; align-items: center; justify-content: center;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .hero-gh {
+      color: var(--muted); font-size: 13px; text-decoration: none;
+      display: flex; align-items: center; gap: 5px; transition: color .12s;
+    }
+    .hero-gh:hover { color: var(--text); }
+    .hero-install {
+      font-family: 'SF Mono','Fira Code',Consolas,monospace;
+      font-size: 12px; color: var(--muted); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 5px; padding: 4px 10px;
+    }
 
-    /* ── Left panel ──────────────────────────────────────────── */
-    .left {
-      width: 355px; min-width: 270px; flex-shrink: 0;
-      display: flex; flex-direction: column;
-      border-right: 1px solid var(--border); background: var(--surface);
+    /* ── Platform strip ──────────────────────────────────────── */
+    .plat-strip {
+      padding: 24px 0; border-bottom: 1px solid var(--border);
+      overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
     }
-    .sec-lbl {
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .1em; color: var(--muted); padding: 11px 12px 5px;
+    .plat-strip-inner {
+      display: inline-flex; gap: 10px; padding: 0 24px;
     }
-
-    /* ── Platform grid ───────────────────────────────────────── */
-    .plat-grid {
-      padding: 0 9px 8px;
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+    .plat-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 99px; padding: 5px 13px; font-size: 12px; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0;
     }
-    .plat-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 7px 3px 5px; border: 1px solid var(--border-sub); border-radius: 7px;
-      background: var(--bg); color: var(--muted); cursor: pointer;
-      transition: border-color .12s, background .12s, color .12s;
-    }
-    .plat-btn:hover { border-color: var(--border); color: var(--text); background: var(--surface2); }
-    .plat-btn.on { border-color: var(--accent); background: rgba(88,166,255,.08); color: var(--text); }
-    .plat-icon {
-      width: 28px; height: 28px; border-radius: 6px;
+    .plat-chip-icon {
+      width: 20px; height: 20px; border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -.03em;
-    }
-    .plat-name { font-size: 9px; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 2px; }
-
-    /* ── Input area ──────────────────────────────────────────── */
-    .in-area { flex: 1; display: flex; flex-direction: column; padding: 0 9px 9px; gap: 6px; min-height: 0; }
-    .drop-z {
-      border: 1px dashed var(--border); border-radius: var(--r);
-      padding: 8px; text-align: center; font-size: 11px; color: var(--muted);
-      cursor: pointer; transition: all .12s; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-    }
-    .drop-z:hover, .drop-z.over { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,.04); }
-    #fileInput { display: none; }
-    .cfg-ta {
-      flex: 1; min-height: 100px;
-      background: var(--bg); border: 1px solid var(--border-sub); border-radius: var(--r);
-      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
-      font-size: 11.5px; padding: 9px; resize: none; outline: none; line-height: 1.55;
-    }
-    .cfg-ta:focus { border-color: var(--accent); }
-    .cfg-ta::placeholder { color: #424a59; }
-    .analyze-btn {
-      padding: 9px; background: var(--accent); color: #0d1117;
-      font-weight: 600; font-size: 13px; border: none; border-radius: var(--r);
-      cursor: pointer; transition: background .12s; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; gap: 7px;
-    }
-    .analyze-btn:hover:not(:disabled) { background: #79c0ff; }
-    .analyze-btn:disabled { opacity: .55; cursor: not-allowed; }
-
-    /* ── Shared mode hint (left panel) ───────────────────────── */
-    .shared-mode-hint {
-      display: none; background: rgba(88,166,255,.05); border: 1px solid rgba(88,166,255,.15);
-      border-radius: 5px; padding: 7px 10px; font-size: 11px; color: var(--accent);
-      margin: 0 9px 4px; text-align: center; flex-shrink: 0;
-    }
-    body.shared-mode .shared-mode-hint { display: block; }
-
-    /* ── Right panel ─────────────────────────────────────────── */
-    .right { flex: 1; overflow-y: auto; padding: 20px; min-width: 0; }
-
-    /* ── Welcome state ───────────────────────────────────────── */
-    .welcome {
-      height: 100%; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 14px; text-align: center;
-    }
-    .welcome-ic { font-size: 50px; line-height: 1; }
-    .welcome h2 { font-size: 19px; }
-    .welcome p { font-size: 13px; color: var(--muted); max-width: 360px; line-height: 1.65; }
-    .steps { margin-top: 6px; display: flex; flex-direction: column; gap: 7px; }
-    .step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-    .step-n {
-      width: 20px; height: 20px; border-radius: 50%; background: var(--surface);
-      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+      font-size: 8px; font-weight: 800; color: #fff; flex-shrink: 0;
     }
 
-    /* ── Results ─────────────────────────────────────────────── */
-    .results { display: none; }
-    .results.show { display: block; }
+    /* ── Features ────────────────────────────────────────────── */
+    .features {
+      display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    }
+    .feature {
+      flex: 1; padding: 40px 28px; border-right: 1px solid var(--border);
+    }
+    .feature:last-child { border-right: none; }
+    .feature-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600; color: var(--accent);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
+    }
+    .feature h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .feature p { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
-    /* ── Shared result state ─────────────────────────────────── */
-    #results[data-mode="shared"] .tab-bar { display: none; }
-    #results[data-mode="shared"] #pIssues { display: block; }
-    #results[data-mode="shared"] #pOpt { display: none !important; }
-
-    .shared-banner {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.2);
-      border-radius: var(--r); padding: 9px 12px; margin-bottom: 14px; font-size: 12px;
-    }
-    .shared-banner-text { color: var(--muted); flex: 1; }
-    .shared-analyze-cta {
-      color: var(--accent); font-weight: 600; text-decoration: none; font-size: 12px;
-      white-space: nowrap;
-    }
-    .shared-analyze-cta:hover { text-decoration: underline; }
-    .shared-issue-badges { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0 6px; }
-    .issue-badge {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 4px; padding: 3px 8px; font-size: 10px; font-family: monospace; color: var(--muted);
-    }
-    .shared-issue-hint { font-size: 11px; color: var(--muted); margin-top: 6px; font-style: italic; }
-
-    /* ── Share button ────────────────────────────────────────── */
-    .share-btn {
-      margin-left: auto; padding: 4px 10px; background: none;
-      border: 1px solid var(--border); border-radius: 5px; color: var(--muted);
-      font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;
-      transition: all .12s; white-space: nowrap;
-    }
-    .share-btn:hover { color: var(--text); border-color: var(--accent); }
-    .share-btn.copied { color: var(--ok); border-color: var(--ok); }
-
-    /* ── Stats ───────────────────────────────────────────────── */
-    .stats { display: flex; gap: 9px; margin-bottom: 14px; flex-wrap: wrap; }
-    .stat {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 10px 14px; min-width: 90px;
-    }
-    .stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 3px; }
-    .stat-val { font-size: 19px; font-weight: 700; line-height: 1; }
-    .stat-u { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 2px; }
-
-    /* ── Score card ──────────────────────────────────────────── */
-    .score-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-      padding: 16px 18px; display: flex; gap: 22px; align-items: center; margin-bottom: 16px;
-    }
-    .score-ring svg { display: block; }
-    .cats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-    .cat-row { display: flex; align-items: center; gap: 9px; }
-    .cat-lbl { font-size: 11px; color: var(--muted); width: 115px; flex-shrink: 0; }
-    .cat-track { flex: 1; height: 5px; background: var(--border-sub); border-radius: 3px; overflow: hidden; }
-    .cat-fill { height: 100%; border-radius: 3px; transition: width .7s cubic-bezier(.4,0,.2,1); }
-    .cat-sc { font-size: 11px; font-weight: 600; width: 34px; text-align: right; flex-shrink: 0; }
-    .plat-pill {
-      font-size: 10px; color: var(--muted); background: var(--bg);
-      padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border);
-      display: inline-flex; align-items: center; gap: 4px;
-    }
-    .plat-dot { width: 7px; height: 7px; border-radius: 50%; }
-
-    /* ── Tabs ────────────────────────────────────────────────── */
-    .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
-    .tab-btn {
-      padding: 7px 14px; background: none; border: none;
-      border-bottom: 2px solid transparent; color: var(--muted);
-      font-size: 12px; font-weight: 500; cursor: pointer; transition: all .12s; margin-bottom: -1px;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-bdg {
-      background: var(--bg); border: 1px solid var(--border);
-      padding: 1px 5px; border-radius: 99px; font-size: 9px; margin-left: 4px;
+    @media (max-width: 640px) {
+      .features { flex-direction: column; }
+      .feature { border-right: none; border-bottom: 1px solid var(--border); }
+      .feature:last-child { border-bottom: none; }
     }
 
-    /* ── Issues ──────────────────────────────────────────────── */
-    .issue-list { display: flex; flex-direction: column; gap: 7px; }
-    .no-issues {
-      background: rgba(63,185,80,.07); border: 1px solid rgba(63,185,80,.25);
-      border-radius: var(--r); padding: 20px; text-align: center; color: var(--ok); font-size: 13px;
+    /* ── Hall of Fame ────────────────────────────────────────── */
+    .hof {
+      padding: 60px 24px; border-bottom: 1px solid var(--border);
+      text-align: center;
     }
-    .issue {
-      background: var(--surface); border-radius: var(--r); padding: 9px 11px;
-      border-left: 3px solid; display: flex; gap: 9px; align-items: flex-start;
+    .hof-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 600; color: var(--accent);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
     }
-    .issue.critical { border-left-color: var(--crit); }
-    .issue.warning  { border-left-color: var(--warn); }
-    .issue.info     { border-left-color: var(--info); }
-    .sev {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px;
+    .hof h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .hof-desc { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
+    .hof-cards {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
     }
-    .sev.critical { background: rgba(248,81,73,.15); color: var(--crit); }
-    .sev.warning  { background: rgba(210,153,34,.15); color: var(--warn); }
-    .sev.info     { background: rgba(56,139,253,.15); color: var(--info); }
-    .iss-body { flex: 1; min-width: 0; }
-    .iss-code { font-size: 9px; font-family: monospace; color: var(--muted); margin-bottom: 2px; }
-    .iss-msg { font-size: 12px; color: var(--text); line-height: 1.45; }
-    .iss-ctx {
-      margin-top: 5px; font-size: 10.5px; font-family: monospace; color: var(--muted);
-      background: var(--bg); padding: 3px 7px; border-radius: 4px;
-      white-space: pre-wrap; word-break: break-all;
+    .hof-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px 22px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+      width: 220px; flex-shrink: 0;
     }
-    .iss-line { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .hof-ring { position: relative; }
+    .hof-plat-badge {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #fff;
+      margin-bottom: 4px;
+    }
+    .hof-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px; font-weight: 700; line-height: 1;
+    }
+    .hof-grade {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-top: 2px;
+    }
+    .hof-plat-name { font-size: 12px; font-weight: 600; }
+    .hof-summary { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.45; }
 
-    /* ── Optimized ───────────────────────────────────────────── */
-    .opt-wrap { display: flex; flex-direction: column; gap: 13px; }
-    .changes-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 13px;
-    }
-    .changes-title { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
-    .change-item { display: flex; gap: 7px; font-size: 12px; color: var(--text); padding: 3px 0; }
-    .change-icon { color: var(--ok); flex-shrink: 0; margin-top: 1px; }
-    .opt-code-wrap { position: relative; }
-    .copy-btn {
-      position: absolute; top: 8px; right: 8px; z-index: 1;
-      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-      padding: 4px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; transition: all .12s;
-    }
-    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
-    .opt-ta {
-      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r);
-      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
-      font-size: 11.5px; padding: 12px; min-height: 260px; outline: none; resize: vertical; line-height: 1.55;
+    .grade-a { color: #3fb950; background: rgba(63,185,80,.12); }
+    .grade-b { color: #58a6ff; background: rgba(88,166,255,.12); }
+    .grade-c { color: #d29922; background: rgba(210,153,34,.12); }
+
+    @media (max-width: 640px) {
+      .hof-cards { flex-direction: column; align-items: center; }
+      .hof-card { width: 100%; max-width: 320px; }
     }
 
-    /* ── CTA section ─────────────────────────────────────────── */
-    .cta-section {
-      margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px;
-      display: flex; flex-direction: column; gap: 9px;
+    /* ── Bottom CTA ──────────────────────────────────────────── */
+    .bottom-cta {
+      padding: 64px 24px; text-align: center;
     }
-    .cta-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-      padding: 13px 15px;
+    .bottom-cta h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 700; margin-bottom: 12px;
     }
-    .cta-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-    .cta-desc { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
-    .cta-install-wrap {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
-      background: var(--bg); border: 1px solid var(--border-sub); border-radius: 6px; padding: 7px 10px;
+    .bottom-cta p { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .bottom-cta-link {
+      display: inline-flex; align-items: center;
+      padding: 14px 36px; background: var(--accent); color: #0d1117;
+      font-size: 16px; font-weight: 700; border-radius: var(--r);
+      text-decoration: none; transition: filter .12s; min-height: 44px;
     }
-    .cta-install-cmd {
-      flex: 1; font-family: 'SF Mono','Fira Code',Consolas,monospace; font-size: 11px;
-      color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .cta-copy-btn {
-      flex-shrink: 0; padding: 3px 9px; background: none; border: 1px solid var(--border);
-      border-radius: 4px; color: var(--muted); font-size: 11px; cursor: pointer; transition: all .12s;
-    }
-    .cta-copy-btn:hover { color: var(--text); border-color: var(--accent); }
-    .cta-usage-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
-    .cta-usage-cmd {
-      display: block; font-family: 'SF Mono','Fira Code',Consolas,monospace;
-      font-size: 11px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-sub);
-      border-radius: 5px; padding: 5px 9px; word-break: break-all;
-    }
-    .star-cta-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-      padding: 10px 15px; display: flex; align-items: center; gap: 10px;
-    }
-    .star-cta-link {
-      color: var(--text); text-decoration: none; font-size: 12px; font-weight: 600;
-      display: flex; align-items: center; gap: 6px; transition: color .12s;
-    }
-    .star-cta-link:hover { color: var(--accent); }
-    .star-cta-hint { font-size: 11px; color: var(--muted); }
+    .bottom-cta-link:hover { filter: brightness(1.1); }
 
-    /* ── Misc ────────────────────────────────────────────────── */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spin {
-      width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.3);
-      border-top-color: #0d1117; border-radius: 50%; animation: spin .7s linear infinite;
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border); padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted);
     }
-    .err-box {
-      background: rgba(248,81,73,.08); border: 1px solid var(--crit);
-      border-radius: var(--r); padding: 13px; color: var(--crit); font-size: 13px;
-    }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    @media (max-width: 680px) {
-      .app { flex-direction: column; height: auto; }
-      .left { width: 100%; max-width: none; border-right: none; border-bottom: 1px solid var(--border); }
-      .right { min-height: 70vh; }
-      .cta-install-cmd { font-size: 10px; }
-    }
+    .footer a { color: var(--muted); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
   </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="logo">🍼 agent<em>sitter</em></div>
+  <a href="/" class="logo">🍼 agent<em>sitter</em></a>
   <span class="ver">v1.1.0</span>
   <div class="hdr-r">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="gh-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
       GitHub
     </a>
+    <a href="/demo/" class="hdr-cta">Score your config →</a>
   </div>
 </header>
 
-<div class="app">
+<!-- ── Hero ──────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-emoji">🍼</div>
+  <h1>Your AI doesn't know<br>who you are.<br><em>agentsitter fixes that.</em></h1>
+  <p class="hero-sub">Paste your config. Get a score. Fix it in seconds.</p>
+  <p class="hero-desc">Score, fix, and share your AI coding agent config. 13 platforms.</p>
+  <a href="/demo/" class="hero-cta">Score your config →</a>
+  <div class="hero-secondary">
+    <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="hero-gh">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      Star on GitHub
+    </a>
+    <code class="hero-install">npx @serdaraytac/agentsitter</code>
+  </div>
+</section>
 
-  <!-- ── LEFT ─────────────────────────────────────────────── -->
-  <aside class="left">
-    <div class="sec-lbl">Platform</div>
-    <div class="plat-grid" id="platGrid"></div>
-
-    <div class="shared-mode-hint" id="sharedModeHint">Viewing shared result — paste yours to compare</div>
-
-    <div class="sec-lbl">Config Content</div>
-    <div class="in-area">
-      <div class="drop-z" id="dropZ">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
-        Drop file or click to browse
-        <input type="file" id="fileInput" accept=".md,.txt,.json,.xml,.cursorrules,.clinerules,.windsurfrules,.mdc" />
-      </div>
-
-      <textarea
-        class="cfg-ta" id="cfgContent"
-        placeholder="# CLAUDE.md&#10;&#10;Paste config file content here...&#10;&#10;Supports: CLAUDE.md · .cursorrules · .clinerules&#10;AGENTS.md · GEMINI.md · copilot-instructions.md · ..."
-        spellcheck="false"
-      ></textarea>
-
-      <button class="analyze-btn" id="analyzeBtn">Analyze →</button>
-    </div>
-  </aside>
-
-  <!-- ── RIGHT ────────────────────────────────────────────── -->
-  <main class="right">
-
-    <div class="welcome" id="welcome">
-      <div class="welcome-ic">🍼</div>
-      <h2>Analyze your AI agent config</h2>
-      <p>Score, find issues, and get an optimized version of your AI coding agent configuration file — all in the browser.</p>
-      <div class="steps">
-        <div class="step"><div class="step-n">1</div>Select your platform</div>
-        <div class="step"><div class="step-n">2</div>Paste or drop your config file</div>
-        <div class="step"><div class="step-n">3</div>Click Analyze</div>
-      </div>
-    </div>
-
-    <div class="results" id="results">
-      <div class="stats" id="stats"></div>
-      <div class="score-card" id="scoreCard"></div>
-
-      <div class="tab-bar">
-        <button class="tab-btn active" id="tIssues" onclick="switchTab('issues')">
-          Issues <span class="tab-bdg" id="issueBdg">0</span>
-        </button>
-        <button class="tab-btn" id="tOpt" onclick="switchTab('opt')">Optimized</button>
-      </div>
-
-      <div id="pIssues"><div class="issue-list" id="issueList"></div></div>
-      <div id="pOpt" style="display:none"><div class="opt-wrap" id="optWrap"></div></div>
-
-      <div class="cta-section">
-        <div class="cta-card">
-          <div class="cta-title">Run agentsitter in your AI session</div>
-          <div class="cta-desc">Install once — get live feedback directly in Claude Code</div>
-          <div class="cta-install-wrap">
-            <code class="cta-install-cmd">claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter</code>
-            <button class="cta-copy-btn" id="ctaCopyBtn" onclick="copyInstall()">Copy</button>
-          </div>
-          <div class="cta-usage-label">Then in Claude Code, type:</div>
-          <code class="cta-usage-cmd">analyze_config { "filepath": "./CLAUDE.md" }</code>
-        </div>
-        <div class="star-cta-card">
-          <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="star-cta-link">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/></svg>
-            Star on GitHub
-          </a>
-          <span class="star-cta-hint">Helps others discover agentsitter</span>
-        </div>
-      </div>
-    </div>
-
-  </main>
+<!-- ── Platform strip ─────────────────────────────────────────────── -->
+<div class="plat-strip" aria-label="Supported platforms">
+  <div class="plat-strip-inner">
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#d97706">CC</div>Claude Code</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#6366f1">CU</div>Cursor</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#059669">CL</div>Cline</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#10b981">CO</div>Codex</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#4285f4">GE</div>Gemini CLI</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#8b5cf6">CP</div>Copilot</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#0ea5e9">WS</div>Windsurf</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#f59e0b">AM</div>Amp</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#ef4444">OC</div>OpenCode</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#7c3aed">WA</div>Warp</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#06b6d4">KI</div>Kimi Code</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#ec4899">AG</div>Antigravity</div>
+    <div class="plat-chip"><div class="plat-chip-icon" style="background:#f97316">FB</div>Firebender</div>
+  </div>
 </div>
 
-<script src="./bundle.js"></script>
-<script>
-// ── Platforms ─────────────────────────────────────────────────────────────
-const PLATS = [
-  { id:'claude',      name:'Claude Code', file:'CLAUDE.md',               color:'#d97706' },
-  { id:'cursor',      name:'Cursor',      file:'.cursor/rules/rules.md',  color:'#6366f1' },
-  { id:'cline',       name:'Cline',       file:'.clinerules',             color:'#059669' },
-  { id:'codex',       name:'Codex',       file:'AGENTS.md',               color:'#10b981' },
-  { id:'gemini',      name:'Gemini CLI',  file:'GEMINI.md',               color:'#4285f4' },
-  { id:'copilot',     name:'Copilot',     file:'copilot-instructions.md', color:'#8b5cf6' },
-  { id:'windsurf',    name:'Windsurf',    file:'.windsurfrules',          color:'#0ea5e9' },
-  { id:'amp',         name:'Amp',         file:'AGENTS.md',               color:'#f59e0b' },
-  { id:'opencode',    name:'OpenCode',    file:'AGENTS.md',               color:'#ef4444' },
-  { id:'warp',        name:'Warp',        file:'AGENTS.md',               color:'#7c3aed' },
-  { id:'kimi',        name:'Kimi Code',   file:'kimi.md',                 color:'#06b6d4' },
-  { id:'antigravity', name:'Antigravity', file:'AGENTS.md',               color:'#ec4899' },
-  { id:'firebender',  name:'Firebender',  file:'firebender.xml',          color:'#f97316' },
-];
+<!-- ── Features ──────────────────────────────────────────────────── -->
+<section class="features">
+  <div class="feature">
+    <div class="feature-num">01 — Score</div>
+    <h3>Know where you stand</h3>
+    <p>Get a 0–100 score with grade across clarity, structure, token efficiency, and coverage. See exactly which rules are vague, missing, or duplicated.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-num">02 — Fix</div>
+    <h3>Get the optimized version</h3>
+    <p>agentsitter generates a fixed version of your config — applied changes listed, ready to copy. No rewrite from scratch. Your rules, made precise.</p>
+  </div>
+  <div class="feature">
+    <div class="feature-num">03 — Share</div>
+    <h3>Shareable score cards</h3>
+    <p>Score reveals generate a shareable URL and a README badge. Post your grade on X, compare configs with your team, or add the badge to your repo.</p>
+  </div>
+</section>
 
-let sel = 'claude';
-
-function abbr(name) {
-  return name.replace('CLI','').replace('Code','').trim()
-    .split(/[\s-]/).map(w => w[0]).join('').slice(0,2).toUpperCase();
-}
-
-function renderPlats() {
-  document.getElementById('platGrid').innerHTML = PLATS.map(p =>
-    `<button class="plat-btn${p.id===sel?' on':''}" onclick="pick('${p.id}')"
-      aria-pressed="${p.id===sel}" title="${p.name} — ${p.file}">
-      <div class="plat-icon" style="background:${p.color}">${abbr(p.name)}</div>
-      <div class="plat-name">${p.name}</div>
-    </button>`
-  ).join('');
-}
-
-function pick(id) { sel = id; renderPlats(); }
-
-// ── File drop / upload ─────────────────────────────────────────────────────
-const dz = document.getElementById('dropZ');
-const fi = document.getElementById('fileInput');
-
-dz.addEventListener('click', () => fi.click());
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => {
-  e.preventDefault(); dz.classList.remove('over');
-  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
-});
-fi.addEventListener('change', () => { if (fi.files[0]) readFile(fi.files[0]); });
-
-function readFile(f) {
-  const r = new FileReader();
-  r.onload = e => { document.getElementById('cfgContent').value = e.target.result; };
-  r.readAsText(f);
-  const n = f.name.toLowerCase();
-  const m = PLATS.find(p => n === p.file.split('/').pop() || n.includes(p.id));
-  if (m) pick(m.id);
-}
-
-// ── Tabs ───────────────────────────────────────────────────────────────────
-function switchTab(t) {
-  document.getElementById('tIssues').classList.toggle('active', t==='issues');
-  document.getElementById('tOpt').classList.toggle('active', t==='opt');
-  document.getElementById('pIssues').style.display = t==='issues' ? 'block' : 'none';
-  document.getElementById('pOpt').style.display = t==='opt' ? 'block' : 'none';
-}
-
-// ── Score ring SVG ─────────────────────────────────────────────────────────
-function scoreRing(s, grade) {
-  const R = 44, C = 2 * Math.PI * R;
-  const clr = s>=90 ? '#3fb950' : s>=75 ? '#58a6ff' : s>=60 ? '#d29922' : s>=40 ? '#f0883e' : '#f85149';
-  const dash = (s / 100 * C).toFixed(1);
-  return `<svg width="106" height="106" viewBox="0 0 106 106">
-    <circle cx="53" cy="53" r="${R}" fill="none" stroke="#21262d" stroke-width="9"/>
-    <circle cx="53" cy="53" r="${R}" fill="none" stroke="${clr}" stroke-width="9"
-      stroke-dasharray="${dash} ${C.toFixed(1)}" stroke-linecap="round"
-      transform="rotate(-90 53 53)"/>
-    <text x="53" y="48" text-anchor="middle" dominant-baseline="central"
-      fill="#e6edf3" font-size="26" font-weight="700" font-family="-apple-system,sans-serif">${s}</text>
-    <text x="53" y="67" text-anchor="middle" fill="${clr}" font-size="11" font-weight="600"
-      font-family="-apple-system,sans-serif">Grade ${grade}</text>
-  </svg>`;
-}
-
-// ── Category bar ───────────────────────────────────────────────────────────
-function catBar(label, val) {
-  const p = Math.round((val/25)*100);
-  const clr = p>=80 ? '#3fb950' : p>=60 ? '#d29922' : '#f85149';
-  return `<div class="cat-row">
-    <div class="cat-lbl">${label}</div>
-    <div class="cat-track"><div class="cat-fill" style="width:${p}%;background:${clr}"></div></div>
-    <div class="cat-sc" style="color:${clr}">${val}<span style="color:#8b949e;font-weight:400">/25</span></div>
-  </div>`;
-}
-
-// ── XSS escape ─────────────────────────────────────────────────────────────
-function x(s) {
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-
-// ── Score card HTML (shared by showResults + renderSharedResult) ───────────
-function scoreCardHtml(sc, plat) {
-  const platPill = plat
-    ? `<span class="plat-pill"><span class="plat-dot" style="background:${plat.color}"></span>${x(plat.name)}</span>`
-    : '';
-  const linkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>`;
-  return `
-    <div class="score-ring" role="img" aria-label="Score: ${sc.overall}/100, Grade ${sc.grade}">
-      ${scoreRing(sc.overall, sc.grade)}
-    </div>
-    <div style="flex:1">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px">
-        <span style="font-weight:600;font-size:13px">Overall Score</span>
-        ${platPill}
-        <button class="share-btn" id="shareBtn" onclick="shareResult()"
-          aria-label="Share result — copies link to clipboard" title="Copy share link">
-          ${linkIcon} Share
-        </button>
+<!-- ── Hall of Fame ───────────────────────────────────────────────── -->
+<section class="hof">
+  <div class="hof-label">Hall of Fame</div>
+  <h2>What a great config looks like</h2>
+  <p class="hof-desc">Example scores from well-structured configs across platforms.</p>
+  <div class="hof-cards">
+    <div class="hof-card">
+      <div class="hof-plat-badge" style="background:#d97706">CC</div>
+      <div>
+        <div class="hof-score" style="color:#3fb950">94</div>
+        <div class="hof-grade grade-a">Grade A</div>
       </div>
-      <div class="cats">
-        ${catBar('Clarity', sc.categories.clarity)}
-        ${catBar('Structure', sc.categories.structure)}
-        ${catBar('Token Efficiency', sc.categories.tokenEfficiency)}
-        ${catBar('Coverage', sc.categories.coverage)}
+      <div class="hof-plat-name">Claude Code</div>
+      <div class="hof-summary">Excellent: 12 rules, examples, do/don't pairs</div>
+    </div>
+    <div class="hof-card">
+      <div class="hof-plat-badge" style="background:#6366f1">CU</div>
+      <div>
+        <div class="hof-score" style="color:#58a6ff">78</div>
+        <div class="hof-grade grade-b">Grade B</div>
       </div>
-    </div>`;
-}
-
-// ── URL hash encoding ──────────────────────────────────────────────────────
-function encodeResult(sc, a) {
-  const { platform } = a;
-  const { overall: score, grade, categories: cats } = sc;
-  const issueMap = new Map();
-  for (const iss of a.issues) {
-    issueMap.set(iss.code, (issueMap.get(iss.code) || 0) + 1);
-  }
-  const issuesStr = [...issueMap.entries()]
-    .map(([code, cnt]) => `${encodeURIComponent(code)}:${cnt}`)
-    .join(',');
-  let hash = `v1:platform=${encodeURIComponent(platform)}&score=${score}&grade=${grade}&cats=${cats.clarity},${cats.structure},${cats.tokenEfficiency},${cats.coverage}`;
-  if (issuesStr) hash += `&issues=${issuesStr}`;
-  return hash;
-}
-
-// ── Share result ───────────────────────────────────────────────────────────
-function shareResult() {
-  const url = window.location.href;
-  const btn = document.getElementById('shareBtn');
-  const linkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>`;
-  const checkIcon = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg>`;
-
-  const doCopy = () => {
-    navigator.clipboard.writeText(url).then(() => {
-      if (btn) {
-        btn.classList.add('copied');
-        btn.innerHTML = `${checkIcon} Copied!`;
-        setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = `${linkIcon} Share`;
-        }, 2000);
-      }
-    }).catch(() => {
-      if (btn) {
-        btn.textContent = 'Copy failed';
-        setTimeout(() => { btn.innerHTML = `${linkIcon} Share`; }, 2000);
-      }
-    });
-  };
-
-  if (navigator.share) {
-    navigator.share({ title: 'agentsitter score card', url }).catch(() => doCopy());
-  } else {
-    doCopy();
-  }
-}
-
-// ── Decode shared result from URL hash ────────────────────────────────────
-function decodeAndRenderSharedResult(hash) {
-  try {
-    const raw = hash.startsWith('#') ? hash.slice(1) : hash;
-    if (!raw.startsWith('v1:')) return;
-    const qs = raw.slice(3);
-    const params = {};
-    for (const part of qs.split('&')) {
-      const eq = part.indexOf('=');
-      if (eq < 0) continue;
-      params[part.slice(0, eq)] = part.slice(eq + 1);
-    }
-    const platform = decodeURIComponent(params.platform || 'claude');
-    const score = parseInt(params.score, 10);
-    const grade = params.grade || 'F';
-    if (isNaN(score) || score < 0 || score > 100) return;
-
-    const catsParts = (params.cats || '0,0,0,0').split(',').map(n => {
-      const v = parseInt(n, 10);
-      return isNaN(v) ? 0 : Math.max(0, Math.min(25, v));
-    });
-    const [clarity, structure, tokenEfficiency, coverage] = catsParts;
-
-    const issues = [];
-    if (params.issues) {
-      for (const part of params.issues.split(',')) {
-        if (!part) continue;
-        const colon = part.lastIndexOf(':');
-        if (colon < 0) continue;
-        const code = decodeURIComponent(part.slice(0, colon));
-        const cnt = parseInt(part.slice(colon + 1), 10) || 1;
-        if (code) issues.push({ code, count: cnt });
-      }
-    }
-
-    // Pre-select the shared platform
-    pick(platform);
-
-    const sc = { overall: score, grade, categories: { clarity, structure, tokenEfficiency, coverage } };
-    const plat = PLATS.find(p => p.id === platform);
-    const platName = plat ? plat.name : platform;
-
-    document.getElementById('welcome').style.display = 'none';
-    const resultsEl = document.getElementById('results');
-    resultsEl.className = 'results show';
-    resultsEl.dataset.mode = 'shared';
-    document.body.classList.add('shared-mode');
-
-    document.getElementById('stats').innerHTML = `
-      <div class="shared-banner">
-        <span class="shared-banner-text">Shared score — ${x(platName)} config, Grade ${x(grade)} (${score})</span>
-        <a class="shared-analyze-cta" href="#" onclick="focusTextarea();return false">Analyze yours →</a>
-      </div>`;
-
-    document.getElementById('scoreCard').innerHTML = scoreCardHtml(sc, plat);
-
-    const totalIssues = issues.reduce((s, i) => s + i.count, 0);
-    document.getElementById('issueBdg').textContent = totalIssues;
-    document.getElementById('issueList').innerHTML = totalIssues === 0
-      ? `<div class="no-issues">No issues found in this config</div>`
-      : `<div class="shared-issue-badges">${issues.map(i => `<span class="issue-badge">${i.count}&times; ${x(i.code)}</span>`).join('')}</div>
-         <p class="shared-issue-hint">Paste your config above to see full issue details and get an optimized version</p>`;
-
-    document.getElementById('optWrap').innerHTML = '';
-    document.getElementById('analyzeBtn').textContent = 'Analyze Mine →';
-  } catch(_) {
-    // malformed hash → show welcome (no-op)
-  }
-}
-
-function focusTextarea() {
-  const ta = document.getElementById('cfgContent');
-  ta.focus();
-  ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-function copyInstall() {
-  const cmd = 'claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter';
-  const btn = document.getElementById('ctaCopyBtn');
-  navigator.clipboard.writeText(cmd).then(() => {
-    if (btn) {
-      btn.textContent = 'Copied!';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-    }
-  }).catch(() => {
-    if (btn) {
-      btn.textContent = 'Copy failed';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-    }
-  });
-}
-
-// ── Render results ─────────────────────────────────────────────────────────
-function showResults(data) {
-  const { analysis: a, score: sc, optimization: opt } = data;
-
-  document.getElementById('welcome').style.display = 'none';
-  const resultsEl = document.getElementById('results');
-  resultsEl.className = 'results show';
-  delete resultsEl.dataset.mode;
-  document.body.classList.remove('shared-mode');
-  document.getElementById('analyzeBtn').textContent = 'Analyze →';
-
-  // Update URL hash to reflect current analysis result
-  window.location.hash = encodeResult(sc, a);
-
-  // Stats
-  const costHtml = a.estimatedCostUsd === 0
-    ? `<span style="color:#3fb950">Free</span>`
-    : `$${(a.estimatedCostUsd * 1000).toFixed(4)}<span class="stat-u">/1k sess</span>`;
-
-  document.getElementById('stats').innerHTML = `
-    <div class="stat">
-      <div class="stat-lbl">Tokens</div>
-      <div class="stat-val">${a.tokenCount.toLocaleString()}</div>
+      <div class="hof-plat-name">Cursor</div>
+      <div class="hof-summary">Good: clear rules, some vague sections</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Cost / session</div>
-      <div class="stat-val">${costHtml}</div>
+    <div class="hof-card">
+      <div class="hof-plat-badge" style="background:#4285f4">GE</div>
+      <div>
+        <div class="hof-score" style="color:#d29922">61</div>
+        <div class="hof-grade grade-c">Grade C</div>
+      </div>
+      <div class="hof-plat-name">Gemini CLI</div>
+      <div class="hof-summary">Needs work: 8 vague rules, missing examples</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Issues</div>
-      <div class="stat-val" style="color:${a.issues.length>0?'#f85149':'#3fb950'}">${a.issues.length}</div>
-    </div>`;
+  </div>
+</section>
 
-  // Score card
-  const plat = PLATS.find(p => p.id === a.platform);
-  document.getElementById('scoreCard').innerHTML = scoreCardHtml(sc, plat);
+<!-- ── Bottom CTA ─────────────────────────────────────────────────── -->
+<section class="bottom-cta">
+  <h2>What's your score?</h2>
+  <p>Paste your config and find out in under 10 seconds.</p>
+  <a href="/demo/" class="bottom-cta-link">Score your config →</a>
+</section>
 
-  // Issues (sorted critical → warning → info)
-  const ORDER = { critical:0, warning:1, info:2 };
-  const issues = [...a.issues].sort((x,y) => (ORDER[x.severity]??3)-(ORDER[y.severity]??3));
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <span>🍼 agentsitter v1.1.0</span>
+  <div style="display:flex;gap:16px">
+    <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.npmjs.com/package/@serdaraytac/agentsitter" target="_blank" rel="noopener">npm</a>
+    <a href="/demo/">Score your config</a>
+  </div>
+</footer>
 
-  document.getElementById('issueBdg').textContent = issues.length;
-
-  document.getElementById('issueList').innerHTML = issues.length === 0
-    ? `<div class="no-issues">&#10003; No issues found — config looks well-structured!</div>`
-    : issues.map(iss => `
-        <div class="issue ${iss.severity}">
-          <span class="sev ${iss.severity}">${iss.severity}</span>
-          <div class="iss-body">
-            <div class="iss-code">${x(iss.code)}</div>
-            <div class="iss-msg">${x(iss.message)}</div>
-            ${iss.context ? `<div class="iss-ctx">${x(iss.context)}</div>` : ''}
-            ${iss.line    ? `<div class="iss-line">Line ${iss.line}</div>` : ''}
-          </div>
-        </div>`).join('');
-
-  // Optimized
-  document.getElementById('optWrap').innerHTML = `
-    <div class="changes-card">
-      <div class="changes-title">Applied Changes (${opt.changesSummary.length})</div>
-      ${opt.changesSummary.map(c => `<div class="change-item"><span class="change-icon">&#10003;</span>${x(c)}</div>`).join('')}
-    </div>
-    <div class="opt-code-wrap">
-      <button class="copy-btn" id="copyBtn" onclick="doCopy()">Copy</button>
-      <textarea class="opt-ta" id="optTa" readonly>${x(opt.optimizedContent)}</textarea>
-    </div>`;
-
-  switchTab('issues');
-}
-
-function doCopy() {
-  navigator.clipboard.writeText(document.getElementById('optTa').value).then(() => {
-    const b = document.getElementById('copyBtn');
-    b.textContent = 'Copied!';
-    setTimeout(() => { b.textContent = 'Copy'; }, 2000);
-  });
-}
-
-// ── Analyze ────────────────────────────────────────────────────────────────
-document.getElementById('analyzeBtn').addEventListener('click', () => {
-  const content = document.getElementById('cfgContent').value.trim();
-  if (!content) { alert('Paste your config file content first.'); return; }
-
-  const btn = document.getElementById('analyzeBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spin"></div> Analyzing...';
-
-  // yield so spinner renders before synchronous work
-  setTimeout(() => {
-    try {
-      const plat = PLATS.find(p => p.id === sel);
-      let config = ConfigMode.parseConfig(plat ? plat.file : 'CLAUDE.md', content);
-      // Override platform: shared filenames (AGENTS.md) must use the correct profile
-      config = Object.assign({}, config, { platform: sel });
-
-      const analysis     = ConfigMode.analyze(config);
-      const score        = ConfigMode.score(analysis);
-      const optimization = ConfigMode.optimize(config, analysis, score);
-
-      showResults({ analysis, score, optimization });
-    } catch(e) {
-      document.getElementById('welcome').style.display = 'none';
-      document.getElementById('results').className = 'results show';
-      document.getElementById('stats').innerHTML =
-        `<div class="err-box">Error: ${x(String(e))}</div>`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Analyze →';
-    }
-  }, 0);
-});
-
-// ── Init ───────────────────────────────────────────────────────────────────
-renderPlats();
-if (window.location.hash) decodeAndRenderSharedResult(window.location.hash);
-</script>
 </body>
 </html>
