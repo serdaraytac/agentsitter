@@ -100,7 +100,7 @@
     }
     @keyframes ring-in {
       from { stroke-dashoffset: 628; }
-      to   { stroke-dashoffset: 94; }
+      to   { stroke-dashoffset: 50; }
     }
     .hero-ring-center {
       position: absolute; inset: 0;
@@ -116,7 +116,7 @@
       counter-reset: score var(--score-num);
     }
     .hero-ring-num::before { content: counter(score); }
-    @keyframes score-count { from { --score-num: 0; } to { --score-num: 85; } }
+    @keyframes score-count { from { --score-num: 0; } to { --score-num: 92; } }
     .hero-ring-grade {
       font-family: var(--font-serif); font-size: 28px; font-weight: 700;
       font-style: italic; color: var(--accent); line-height: 1;
@@ -240,24 +240,68 @@
       .hof-card { width: 100%; max-width: 320px; }
     }
 
-    /* ── Amber CTA band ──────────────────────────────────────── */
-    .amber-band {
-      background: var(--accent); padding: 72px 24px; text-align: center;
+    /* ── README section ─────────────────────────────────────── */
+    .readme {
+      max-width: 760px; margin: 0 auto; padding: 72px 24px 80px;
     }
-    .amber-band h2 {
+    .readme h2 {
       font-family: var(--font-serif); font-style: italic;
-      font-size: clamp(1.5rem, 3.5vw, 2.4rem); font-weight: 700;
-      color: #fff; margin-bottom: 12px;
+      font-size: clamp(1.75rem, 3.75vw, 2.375rem); font-weight: 700;
+      color: var(--text); margin: 52px 0 14px; padding-top: 8px;
+      border-top: 1px solid var(--border);
     }
-    .amber-band p { font-size: 15px; color: rgba(255,255,255,.85); margin-bottom: 28px; }
-    .btn-white {
+    .readme h2:first-child { margin-top: 0; border-top: none; }
+    .readme h3 {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      margin: 28px 0 10px;
+    }
+    .readme p {
+      font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 14px;
+    }
+    .readme ul, .readme ol {
+      padding-left: 22px; margin-bottom: 14px;
+    }
+    .readme li {
+      font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 4px;
+    }
+    .readme code {
+      font-family: var(--font-mono); font-size: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--text);
+    }
+    .readme pre {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px 18px; overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    .readme pre code {
+      background: none; border: none; padding: 0;
+      font-size: 12.5px; line-height: 1.6; color: var(--text);
+    }
+    .readme table {
+      width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px;
+    }
+    .readme th {
+      text-align: left; font-weight: 700; font-size: 12px;
+      border-bottom: 2px solid var(--border); padding: 6px 12px;
+    }
+    .readme td { padding: 7px 12px; border-bottom: 1px solid var(--border-sub); color: var(--muted); }
+    .readme td:first-child { color: var(--text); font-family: var(--font-mono); font-size: 11px; }
+    .readme strong { color: var(--text); font-weight: 600; }
+    .readme blockquote {
+      border-left: 3px solid var(--accent); margin: 0 0 16px;
+      padding: 10px 16px; background: var(--surface); border-radius: 0 var(--r) var(--r) 0;
+    }
+    .readme blockquote p { margin: 0; }
+    .readme hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    .readme-cta-inline {
       display: inline-flex; align-items: center;
-      padding: 14px 36px; background: #fff; color: var(--accent);
-      font-family: var(--font-body); font-size: 16px; font-weight: 700;
-      border-radius: var(--r); text-decoration: none; transition: opacity .12s;
-      min-height: 44px;
+      padding: 10px 24px; background: var(--text); color: var(--bg);
+      font-family: var(--font-body); font-size: 14px; font-weight: 600;
+      border-radius: var(--r); text-decoration: none; transition: background .12s;
+      margin-top: 8px;
     }
-    .btn-white:hover { opacity: .92; }
+    .readme-cta-inline:hover { background: #1f2937; }
 
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
@@ -277,7 +321,7 @@
     <a href="./" class="logo">🍼 agent<em>sitter</em></a>
     <div class="logo-tagline">Fix and maintain your AI agent behavior</div>
   </div>
-  <span class="ver">v1.2.0</span>
+  <span class="ver">v1.3.3</span>
   <div class="hdr-r">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="gh-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -294,13 +338,12 @@
       <circle cx="120" cy="120" r="100" fill="none" stroke="#EDE9E2" stroke-width="22"/>
       <circle class="hero-ring-fill" cx="120" cy="120" r="100" fill="none"
         stroke="#D97706" stroke-width="22" stroke-linecap="round"
-        stroke-dasharray="628" stroke-dashoffset="94"
+        stroke-dasharray="628" stroke-dashoffset="50"
         transform="rotate(-90 120 120)"/>
     </svg>
     <div class="hero-ring-center">
       <div class="hero-ring-num"></div>
-      <div class="hero-ring-grade">A</div>
-      <div class="hero-ring-lbl">example</div>
+      <div class="hero-ring-grade">Grade A</div>
     </div>
   </div>
 
@@ -391,16 +434,259 @@
   </div>
 </section>
 
-<!-- ── Amber CTA band ─────────────────────────────────────────────── -->
-<section class="amber-band">
-  <h2>What's your score?</h2>
-  <p>Paste your config and find out in under 10 seconds. No account, no install.</p>
-  <a href="./scoring/" class="btn-white">Score your config free →</a>
+<!-- ── README ─────────────────────────────────────────────────────── -->
+<section class="readme">
+
+  <h2>The Problem</h2>
+  <p>AI coding agents don't follow your rules.</p>
+  <p>Not because they're bad —<br>because your config files are.</p>
+  <ul>
+    <li><code>"Follow best practices"</code> → meaningless to LLMs</li>
+    <li>Wrong frontmatter → rules never activate</li>
+    <li>Files too large → silently truncated</li>
+    <li>Missing sections → incomplete behavior</li>
+    <li>Platform differences → inconsistent outputs</li>
+  </ul>
+  <p>👉 You think your agent is broken<br>👉 But your config is</p>
+  <blockquote><p><strong>Score yours now:</strong> paste your config, get a grade in seconds. No install. <a href="./scoring/" class="readme-cta-inline">Score your config →</a></p></blockquote>
+
+  <hr>
+
+  <h2>What Agentsitter does</h2>
+  <p>agentsitter analyzes your AI agent configs and fixes them.</p>
+  <ul>
+    <li><strong>Scores</strong> configs (0–100) across clarity, structure, token efficiency, coverage</li>
+    <li><strong>Detects vague rules</strong> LLMs can't execute</li>
+    <li><strong>Finds platform-specific bugs</strong> (Cursor, Codex, Copilot, Cline, etc.)</li>
+    <li><strong>Auto-fixes issues</strong> — not just warnings</li>
+    <li><strong>Optimizes token usage</strong> and estimates cost</li>
+  </ul>
+  <p>Works across <strong>13 platforms</strong>.</p>
+
+  <hr>
+
+  <h2>Example</h2>
+  <p>Before:</p>
+  <pre><code>Follow best practices.
+Handle errors properly.
+Write clean code.</code></pre>
+  <p>Run:</p>
+  <pre><code>optimize_config { "filepath": "./backend.md", "write": true }</code></pre>
+  <p>Output:</p>
+  <pre><code>Score: 29 (F)
+- 3 vague rules
+- 1 missing section
+- 1 duplicate
+
+✨ Fixed → Score: 68 (C)</code></pre>
+  <p>After:</p>
+  <pre><code>- follow the conventions defined in this file
+- handle errors by [TODO: define strategy]
+- easy to extend without modifying existing functions</code></pre>
+
+  <hr>
+
+  <h2>Why this matters</h2>
+  <p>Bad configs = bad AI output.</p>
+  <ul>
+    <li>❌ Unpredictable code</li>
+    <li>❌ Ignored instructions</li>
+    <li>❌ Wasted tokens</li>
+    <li>❌ Hidden platform bugs</li>
+  </ul>
+  <p>Good configs = controllable AI.</p>
+
+  <hr>
+
+  <h2>Quick Start</h2>
+  <p><strong>Claude Code (one command):</strong></p>
+  <pre><code>claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter</code></pre>
+  <p>Restart Claude Code, then verify the install:</p>
+  <pre><code>scan_project { "directory": "." }</code></pre>
+  <p>In Claude Code, type these in the chat window:</p>
+  <pre><code>analyze_config  { "filepath": "./AGENTS.md" }
+optimize_config { "filepath": "./AGENTS.md", "write": true }</code></pre>
+  <p><strong>Other clients — add to your MCP config:</strong></p>
+  <pre><code>{
+  "mcpServers": {
+    "agentsitter": {
+      "command": "npx",
+      "args": ["-y", "@serdaraytac/agentsitter"]
+    }
+  }
+}</code></pre>
+  <p><strong>MCP config location by client:</strong></p>
+  <table>
+    <tr><th>Client</th><th>Config file</th></tr>
+    <tr><td>Claude Code</td><td><code>claude mcp add agentsitter -- npx -y @serdaraytac/agentsitter</code></td></tr>
+    <tr><td>Cursor</td><td><code>.cursor/mcp.json</code> or <code>~/.cursor/mcp.json</code></td></tr>
+    <tr><td>Cline</td><td>VS Code settings → Cline MCP Servers</td></tr>
+    <tr><td>Windsurf</td><td><code>~/.codeium/windsurf/mcp_config.json</code></td></tr>
+    <tr><td>Gemini CLI</td><td><code>~/.gemini/settings.json</code> under <code>mcpServers</code></td></tr>
+    <tr><td>OpenCode</td><td><code>opencode.json</code> under <code>"mcp"</code> key</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>Supported Platforms</h2>
+  <p>Cursor · Codex · Copilot · Claude Code · Gemini CLI · Cline · Windsurf · OpenCode · Amp · Kimi · Warp · Antigravity · Firebender</p>
+
+  <hr>
+
+  <h2>What it catches</h2>
+  <ul>
+    <li>Vague rules ("best practices", "clean code")</li>
+    <li>Silent truncation (Codex 32KB limit)</li>
+    <li>Wrong frontmatter keys (Cursor vs Cline mismatch)</li>
+    <li>Missing scope definitions</li>
+    <li>Invalid imports (Gemini CLI)</li>
+    <li>Duplicate or conflicting rules</li>
+  </ul>
+
+  <h3>Platform-specific checks</h3>
+  <p>Every check comes from official documentation — not guesswork.</p>
+
+  <h3>Claude Code</h3>
+  <ul>
+    <li><code>CLAUDE_MISSING_BUILD_COMMANDS</code> — no build, test, or lint commands found</li>
+    <li><code>CLAUDE_COMMANDS_NOT_IN_CODE_BLOCK</code> — commands outside fenced code blocks</li>
+    <li><code>CLAUDE_PLACEHOLDER_FOUND</code> — unfilled <code>[TODO:]</code> markers in production config</li>
+    <li><code>CLAUDE_IMPORT_IN_CODE_BLOCK</code> — <code>@</code>-imports inside fenced blocks are literal text</li>
+    <li><code>CLAUDE_SUBDIR_SPLIT_RECOMMENDED</code> — file over 10 KB with no <code>@</code>-imports</li>
+  </ul>
+
+  <h3>Cursor</h3>
+  <ul>
+    <li><code>CURSOR_MISSING_FRONTMATTER</code> — <code>.cursor/rules/</code> files without YAML frontmatter lose scope control</li>
+    <li><code>CURSOR_CURSORRULES_LEGACY</code> — <code>.cursorrules</code> no longer documented; migrate to <code>.cursor/rules/*.md</code></li>
+    <li><code>CURSOR_RULE_TOO_LONG</code> — files over 500 lines</li>
+    <li><code>CURSOR_UNKNOWN_FRONTMATTER_KEY</code> — only <code>description</code>, <code>globs</code>, <code>alwaysApply</code> recognized</li>
+  </ul>
+
+  <h3>Codex</h3>
+  <ul>
+    <li><code>CODEX_SIZE_LIMIT</code> — hard 32 KiB truncation; content beyond silently dropped</li>
+    <li><code>CODEX_OVERRIDE_FILE_AVAILABLE</code> — <code>AGENTS.override.md</code> takes precedence over <code>AGENTS.md</code></li>
+  </ul>
+
+  <h3>GitHub Copilot</h3>
+  <ul>
+    <li><code>COPILOT_WRONG_LOCATION</code> — <code>copilot-instructions.md</code> outside <code>.github/</code> not recognized (critical)</li>
+    <li><code>COPILOT_INSTRUCTIONS_WRONG_EXTENSION</code> — files in <code>.github/instructions/</code> must end with <code>.instructions.md</code></li>
+    <li><code>COPILOT_INSTRUCTIONS_MISSING_APPLY_TO</code> — path-specific files without <code>applyTo:</code> apply repo-wide</li>
+  </ul>
+
+  <h3>Gemini CLI</h3>
+  <ul>
+    <li><code>GEMINI_LARGE_NO_IMPORTS</code> — files over 10 KB with no <code>@</code>-imports</li>
+    <li><code>GEMINI_IMPORT_IN_CODE_BLOCK</code> — <code>@</code>-imports inside fenced blocks silently ignored</li>
+    <li><code>GEMINI_IMPORT_INVALID_PATH</code> — imports must use <code>@./</code>, <code>@../</code>, <code>@/</code>, or <code>@~/</code></li>
+  </ul>
+
+  <h3>Cline</h3>
+  <ul>
+    <li><code>CLINE_WRONG_FRONTMATTER_KEY</code> — Cline uses <code>paths:</code>, not <code>globs:</code> (Cursor's key)</li>
+    <li><code>CLINE_UNSUPPORTED_EXTENSION</code> — only <code>.md</code> and <code>.txt</code> processed from <code>.clinerules/</code></li>
+    <li><code>CLINE_AT_IMPORT_NOT_SUPPORTED</code> — <code>@</code>-import syntax not supported</li>
+  </ul>
+
+  <h3>Vagueness detection</h3>
+  <p>7 linguistic categories, each with its own penalty weight:</p>
+  <table>
+    <tr><th>Category</th><th>Penalty</th><th>Example</th></tr>
+    <tr><td>false-shared-context</td><td>−7</td><td>"follow best practices", "industry standard"</td></tr>
+    <tr><td>outcome-without-criterion</td><td>−6</td><td>"ensure quality", "handle errors properly"</td></tr>
+    <tr><td>unmeasurable-quality</td><td>−5</td><td>"elegant", "robust", "well-written"</td></tr>
+    <tr><td>passive-voice</td><td>−5</td><td>"errors should be handled"</td></tr>
+    <tr><td>comparative-without-baseline</td><td>−4</td><td>"as simple as possible"</td></tr>
+    <tr><td>vague-condition</td><td>−3</td><td>"when necessary", "in most cases"</td></tr>
+    <tr><td>weak-obligation</td><td>−2</td><td>"try to", "ideally", "consider using"</td></tr>
+  </table>
+  <p>The optimizer doesn't just flag — it rewrites:</p>
+  <table>
+    <tr><th>Before</th><th>After</th></tr>
+    <tr><td>follow best practices</td><td>follow the conventions defined in this file</td></tr>
+    <tr><td>ensure quality</td><td>verify quality via tests and linting</td></tr>
+    <tr><td>errors should be handled</td><td>must [TODO: specify who performs this action and how]</td></tr>
+    <tr><td>try to write tests</td><td>[TODO: use 'always' if required, or remove if optional]</td></tr>
+    <tr><td>in most cases prefer X</td><td>always prefer X, except when [TODO: list explicit exceptions]</td></tr>
+    <tr><td>for large files</td><td>for files exceeding [TODO: specify a threshold, e.g. 300 lines]</td></tr>
+  </table>
+
+  <hr>
+
+  <h2>How it works</h2>
+  <p>agentsitter combines:</p>
+  <ul>
+    <li>Linguistic analysis (7 vagueness categories)</li>
+    <li>Platform-specific validation rules</li>
+    <li>Token-aware optimization</li>
+    <li>Auto-rewriting engine</li>
+  </ul>
+
+  <h3>Scoring</h3>
+  <table>
+    <tr><th>Category</th><th>Max</th><th>What it measures</th></tr>
+    <tr><td>Clarity</td><td>25</td><td>Absence of vague directives; penalties scaled by platform sensitivity</td></tr>
+    <tr><td>Structure</td><td>25</td><td>Heading usage, section organization, platform-specific format compliance</td></tr>
+    <tr><td>Token Efficiency</td><td>25</td><td>File size vs. platform context window; hard-limit awareness</td></tr>
+    <tr><td>Coverage</td><td>25</td><td>Expected sections present; critical rules at head/tail</td></tr>
+  </table>
+  <table>
+    <tr><th>Score</th><th>Grade</th><th></th></tr>
+    <tr><td>90–100</td><td>A</td><td>Production-ready</td></tr>
+    <tr><td>75–89</td><td>B</td><td>Minor improvements available</td></tr>
+    <tr><td>60–74</td><td>C</td><td>Multiple vague or missing sections</td></tr>
+    <tr><td>40–59</td><td>D</td><td>Significant clarity or structure problems</td></tr>
+    <tr><td>0–39</td><td>F</td><td>Major overhaul needed</td></tr>
+  </table>
+
+  <h3>Tools</h3>
+  <pre><code>scan_project    →  find all config files in the repo
+analyze_config  →  score each file, see what's wrong
+optimize_config →  fix issues automatically, write back to disk</code></pre>
+  <p><code>analyze_config</code> accepts a filepath or inline content:</p>
+  <pre><code>{ "filename": ".clinerules", "content": "# Rules\n..." }</code></pre>
+  <p><code>optimize_config</code> returns the fixed content with a before/after score. Add <code>"write": true</code> to save to disk.</p>
+  <pre><code>{
+  "platform": "claude",
+  "before": { "overall": 29, "grade": "F" },
+  "after":  { "overall": 68, "grade": "C" },
+  "changesSummary": ["Rewrote 3 vague rules", "Added Commands section"],
+  "optimizedContent": "# CLAUDE.md\n..."
+}</code></pre>
+
+  <hr>
+
+  <h2>Try it</h2>
+  <p>Run <code>analyze_config</code> on your config:</p>
+  <pre><code>analyze_config { "filepath": "./CLAUDE.md" }</code></pre>
+  <pre><code>{
+  "platform": "claude",
+  "score": {
+    "overall": 62,
+    "grade": "C",
+    "categories": {
+      "clarity": 13,
+      "structure": 20,
+      "tokenEfficiency": 22,
+      "coverage": 7
+    }
+  },
+  "issues": [
+    { "code": "VAGUE_RULE",      "severity": "warning", "message": "[false-shared-context] 'Best practices' is undefined" },
+    { "code": "VAGUE_RULE",      "severity": "warning", "message": "[weak-obligation] 'Try to keep functions small'" },
+    { "code": "MISSING_SECTION", "severity": "info",    "message": "Missing expected sections for Claude Code: commands, architecture" }
+  ]
+}</code></pre>
+  <p>Then <code>optimize_config</code> to fix it automatically.</p>
+
+
 </section>
 
 <!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <span>🍼 agentsitter v1.2.0</span>
+  <span>🍼 agentsitter v1.3.3</span>
   <div style="display:flex;gap:16px">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener">GitHub</a>
     <a href="https://www.npmjs.com/package/@serdaraytac/agentsitter" target="_blank" rel="noopener">npm</a>
