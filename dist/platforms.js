@@ -5,7 +5,7 @@ const PROFILES = {
         contextWindowTokens: 200_000,
         costPerMillion: 3.0,
         subscriptionBased: false,
-        expectedSections: ["commands", "architecture", "rules", "style"],
+        expectedSections: ["architecture", "rules", "style"],
         vaguenessSensitivity: 1.0,
     },
     cursor: {

@@ -55,7 +55,7 @@ describe("getProfile", () => {
     const claude = getProfile("claude");
     expect(claude.vaguenessSensitivity).toBe(1.0);
     expect(claude.costPerMillion).toBe(3.0);
-    expect(claude.expectedSections).toContain("commands");
+    expect(claude.expectedSections).toContain("architecture");
     expect(claude.expectedSections).toContain("rules");
   });
 

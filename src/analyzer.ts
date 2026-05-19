@@ -175,8 +175,12 @@ export function analyzeVagueRules(config: ParsedConfig): VagueRulesResult {
     const line = config.lines[i];
     if (!line.trim() || line.startsWith("#")) continue;
 
+    // Strip double-quoted and backtick-quoted substrings before pattern testing to
+    // avoid false positives on example text, e.g.: ("write good content" style ambiguity).
+    const testLine = line.replace(/"[^"]*"/g, '""').replace(/`[^`]*`/g, "``");
+
     for (const { pattern, reason, category } of VAGUE_PATTERNS) {
-      if (pattern.test(line)) {
+      if (pattern.test(testLine)) {
         vagueLines.push({ line: i + 1, text: line.trim(), reason, category });
         break;
       }
@@ -185,6 +189,22 @@ export function analyzeVagueRules(config: ParsedConfig): VagueRulesResult {
 
   return { vagueLines };
 }
+
+// Common synonyms for expected section names. Allows "Tech Stack" to match "architecture",
+// "Getting Started" to match "commands", etc. — prevents false-missing penalties on
+// semantically equivalent headings that don't use the canonical name.
+const SECTION_ALIASES: Record<string, string[]> = {
+  "commands":        ["commands", "build", "scripts", "setup", "getting started", "installation", "run"],
+  "architecture":    ["architecture", "tech stack", "stack", "structure", "design", "system design", "tech"],
+  "rules":           ["rules", "guidelines", "conventions", "standards", "instructions", "guide"],
+  "style":           ["style", "formatting", "code style", "coding style", "preferences"],
+  "context":         ["context", "background", "about", "purpose", "overview"],
+  "conventions":     ["conventions", "rules", "standards", "guidelines", "practices"],
+  "testing":         ["testing", "tests", "test plan", "quality", "qa"],
+  "instructions":    ["instructions", "rules", "guide", "guidelines"],
+  "constraints":     ["constraints", "restrictions", "limitations", "requirements"],
+  "pr-instructions": ["pr-instructions", "pr workflow", "pull request", "contributing", "workflow"],
+};
 
 export function analyzeMissingSections(config: ParsedConfig, profile?: PlatformProfile): MissingSectionsResult {
   profile ??= getProfile(config.platform);
@@ -195,7 +215,8 @@ export function analyzeMissingSections(config: ParsedConfig, profile?: PlatformP
   const missing: string[] = [];
 
   for (const section of expected) {
-    const found = headings.some((h) => h.includes(section));
+    const aliases = SECTION_ALIASES[section] ?? [section];
+    const found = headings.some((h) => aliases.some((alias) => h.includes(alias)));
     if (found) {
       present.push(section);
     } else {

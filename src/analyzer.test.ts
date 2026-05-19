@@ -147,21 +147,57 @@ describe("analyzeVagueRules", () => {
     const categories = result.vagueLines.map((v) => v.category);
     expect(categories).toContain("unmeasurable-quality");
   });
+
+  it("does not flag vague text inside double quotes (example/documentation)", () => {
+    const content = '# Analysis\n- Vague rule detection ("write good content" style ambiguity)\n';
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeVagueRules(config);
+    expect(result.vagueLines).toHaveLength(0);
+  });
+
+  it("does not flag vague text inside backticks (code examples)", () => {
+    const content = "# Docs\n- Avoid rules like `follow best practices` — they are undefined\n";
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeVagueRules(config);
+    expect(result.vagueLines).toHaveLength(0);
+  });
+
+  it("still flags vague text outside quotes on the same line", () => {
+    const content = '# Rules\n- Example: "write good code" — always follow best practices\n';
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeVagueRules(config);
+    expect(result.vagueLines.length).toBeGreaterThan(0);
+  });
 });
 
 describe("analyzeMissingSections", () => {
   it("reports missing sections for claude platform", () => {
     const config = parseConfig("CLAUDE.md", "# Rules\nSome rule.");
     const result = analyzeMissingSections(config);
-    expect(result.missing).toContain("commands");
+    expect(result.missing).toContain("style");
   });
 
   it("reports present sections correctly", () => {
     const config = parseConfig("CLAUDE.md", SAMPLE_CLAUDE);
     const result = analyzeMissingSections(config);
-    expect(result.present).toContain("commands");
+    expect(result.present).toContain("architecture");
     expect(result.present).toContain("rules");
     expect(result.present).toContain("style");
+  });
+
+  it("matches section heading aliases (Tech Stack counts as architecture)", () => {
+    const content = "# Project\n\n## Tech Stack\nNode.js + TypeScript.\n\n## Rules\n- Always use strict mode.\n";
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeMissingSections(config);
+    expect(result.present).toContain("architecture");
+    expect(result.missing).not.toContain("architecture");
+  });
+
+  it("matches section heading aliases (Getting Started counts as commands)", () => {
+    const content = "# Project\n\n## Getting Started\n```bash\nnpm install\n```\n";
+    const config = parseConfig("opencode.md", content);
+    const result = analyzeMissingSections(config);
+    expect(result.present).toContain("commands");
   });
 
   it("uses default expected sections for unknown platform", () => {
