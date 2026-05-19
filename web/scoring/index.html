@@ -10,7 +10,7 @@
   <meta property="og:title" content="agentsitter — Score Your Config" />
   <meta property="og:description" content="Paste your CLAUDE.md or .cursorrules. Get a score, see what's wrong, get it fixed automatically." />
   <meta property="og:image" content="https://serdaraytac.github.io/agentsitter/og-image.png" />
-  <meta property="og:url" content="https://serdaraytac.github.io/agentsitter/demo/" />
+  <meta property="og:url" content="https://serdaraytac.github.io/agentsitter/scoring/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="agentsitter — Score Your Config" />
   <meta name="twitter:description" content="Paste your CLAUDE.md or .cursorrules. Get a score, see what's wrong, get it fixed automatically." />
@@ -681,7 +681,7 @@ function buildBadgeUrl(score, grade) {
 // ── Tweet text ───────────────────────────────────────────────────────────
 function buildTweetText(platform, score, grade) {
   const platName = PLATS.find(p => p.id === platform)?.name || platform;
-  return `I scored my ${platName} config: ${score}/100 (Grade ${grade}) with agentsitter 🍼 Try yours: https://serdaraytac.github.io/agentsitter/demo/`;
+  return `I scored my ${platName} config: ${score}/100 (Grade ${grade}) with agentsitter 🍼 Try yours: https://serdaraytac.github.io/agentsitter/scoring/`;
 }
 
 // ── Share on X ───────────────────────────────────────────────────────────

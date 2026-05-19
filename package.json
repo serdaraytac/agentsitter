@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "tsc",
-    "build:web": "esbuild src/browser.ts --bundle --platform=browser --format=iife --global-name=ConfigMode --outfile=web/demo/bundle.js --minify",
+    "build:web": "esbuild src/browser.ts --bundle --platform=browser --format=iife --global-name=ConfigMode --outfile=web/scoring/bundle.js --minify",
     "dev": "tsx src/mcp-server.ts",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -150,7 +150,7 @@ const PLATS_TEST = [
 
 function buildTweetText(platform, score, grade) {
   const platName = PLATS_TEST.find(p => p.id === platform)?.name || platform;
-  return `I scored my ${platName} config: ${score}/100 (Grade ${grade}) with agentsitter 🍼 Try yours: https://serdaraytac.github.io/agentsitter/demo/`;
+  return `I scored my ${platName} config: ${score}/100 (Grade ${grade}) with agentsitter 🍼 Try yours: https://serdaraytac.github.io/agentsitter/scoring/`;
 }
 
 describe('buildTweetText', () => {
@@ -164,7 +164,7 @@ describe('buildTweetText', () => {
     expect(buildTweetText('claude', 87, 'A')).toContain('Grade A');
   });
   it('includes demo URL', () => {
-    expect(buildTweetText('cursor', 72, 'B')).toContain('https://serdaraytac.github.io/agentsitter/demo/');
+    expect(buildTweetText('cursor', 72, 'B')).toContain('https://serdaraytac.github.io/agentsitter/scoring/');
   });
   it('falls back to platform id for unknown platform', () => {
     expect(buildTweetText('unknown_plat', 50, 'C')).toContain('unknown_plat');
