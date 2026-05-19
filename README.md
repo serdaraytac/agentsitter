@@ -1,7 +1,13 @@
-# Agentsitter
+<div align="center">
+
+# 🍼 agentsitter
+
+*Fix and maintain your AI agent behavior*
 
 ![License](https://img.shields.io/badge/license-ELv2-blue)
 ![Last Commit](https://img.shields.io/github/last-commit/serdaraytac/agentsitter)
+
+</div>
 
 **Your AI agent is ignoring your rules — and you don’t even know it.**
 
@@ -24,6 +30,8 @@ because your config files are.
 
 👉 You think your agent is broken  
 👉 But your config is
+
+> **Score yours now:** [serdaraytac.github.io/agentsitter/scoring/](https://serdaraytac.github.io/agentsitter/scoring/) — paste your config, get a grade in seconds. No install.
 
 ---
 
