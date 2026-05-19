@@ -41,6 +41,10 @@ function scoreClarity(result: AnalysisResult): number {
   return clamp(25 - Math.min(Math.round(penalty), 25));
 }
 
+// Issues that belong to the coverage domain — excluded from structure scoring to
+// prevent double-counting (they are penalized in scoreCoverage instead).
+const COVERAGE_DOMAIN_CODES = new Set(["CLAUDE_MISSING_BUILD_COMMANDS"]);
+
 function scoreStructure(result: AnalysisResult): number {
   const { hasHeadings, headingCount, longParagraphLines, unorganizedRuleCount } = result.checks.structure;
   let score = 25;
@@ -51,8 +55,9 @@ function scoreStructure(result: AnalysisResult): number {
   score -= Math.min(10, longParagraphLines.length * 2);
   score -= Math.min(5, Math.floor(unorganizedRuleCount / 2));
 
-  // Platform-specific format compliance penalties
+  // Platform-specific format compliance penalties (coverage-domain issues excluded)
   for (const issue of result.checks.formatCompliance.issues) {
+    if (COVERAGE_DOMAIN_CODES.has(issue.code)) continue;
     if (issue.severity === "critical") score -= 10;
     else if (issue.severity === "warning") score -= 5;
     else score -= 2;
@@ -100,8 +105,10 @@ function scoreCoverage(result: AnalysisResult): number {
   const total = missing.length + present.length;
   if (total === 0) return 25;
 
-  const coveredRatio = present.length / total;
-  let score = Math.round(25 * coveredRatio);
+  // Flat penalty per missing section: each gap costs 5 pts regardless of how many
+  // sections the platform profile defines, so a 2-section platform (copilot) is not
+  // penalized more harshly than a 4-section platform (codex) for the same deficit.
+  let score = 25 - Math.min(15, missing.length * 5);
 
   // Bonus for having critical content placed well
   const { criticalInHead, criticalInTail } = result.checks.attentionPlacement;

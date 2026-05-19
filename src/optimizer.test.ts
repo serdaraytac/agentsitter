@@ -193,6 +193,56 @@ describe("optimize", () => {
     }
   });
 
+  it("does not classify parenthetical keyword mentions as critical rules", () => {
+    // Regression: keywords inside () are descriptive, not imperative rules.
+    // "critical info", "do/don't rules", "severity: critical/warning/info" were
+    // being incorrectly hoisted into a Critical Rules section.
+    const content = `# md-analyzer
+
+## Analysis Criteria
+- Missing section check (variables, examples, do/don't rules)
+- Attention placement (critical info at head/tail for LLM U-shaped attention)
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+- Duplicate content detection
+
+## Output Format
+- Issues list (severity: critical/warning/info)
+
+## Rules
+- Never expose API keys in any file.
+`;
+    const config = parseConfig("CLAUDE.md", content);
+    const analysis = analyze(config);
+    const result = optimize(config, analysis, score(analysis));
+    const lines = result.optimizedContent.split("\n");
+
+    // These are not rules — must NOT appear under Critical Rules
+    const criticalIdx = lines.findIndex((l) => l.includes("## Critical Rules"));
+    if (criticalIdx !== -1) {
+      const criticalSection = lines.slice(criticalIdx + 1);
+      const nextHeading = criticalSection.findIndex((l) => l.startsWith("#"));
+      const criticalContent = nextHeading !== -1 ? criticalSection.slice(0, nextHeading) : criticalSection;
+      expect(criticalContent.join("\n")).not.toContain("Missing section check");
+      expect(criticalContent.join("\n")).not.toContain("Attention placement");
+      expect(criticalContent.join("\n")).not.toContain("Issues list");
+      // The actual rule should be there
+      expect(criticalContent.join("\n")).toContain("Never expose API keys");
+    }
+  });
+
   describe("platform-specific optimizations", () => {
     it("adds frontmatter stub to Cursor .cursor/rules/ file missing it", () => {
       const config = parseConfig(".cursor/rules/typescript.md", "# TypeScript Rules\n- Always use strict mode.");

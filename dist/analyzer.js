@@ -70,13 +70,23 @@ export function analyzeTokenCost(config, profile) {
 }
 export function analyzeVagueRules(config) {
     const vagueLines = [];
+    let inCodeBlock = false;
     for (let i = 0; i < config.lines.length; i++) {
         const line = config.lines[i];
+        if (line.trimStart().startsWith("```")) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+        }
+        if (inCodeBlock)
+            continue;
         if (!line.trim() || line.startsWith("#"))
             continue;
-        // Strip double-quoted and backtick-quoted substrings before pattern testing to
-        // avoid false positives on example text, e.g.: ("write good content" style ambiguity).
-        const testLine = line.replace(/"[^"]*"/g, '""').replace(/`[^`]*`/g, "``");
+        // Strip quoted substrings and parenthetical content before pattern testing to
+        // avoid false positives on example text and descriptive phrases.
+        const testLine = line
+            .replace(/"[^"]*"/g, '""')
+            .replace(/`[^`]*`/g, "``")
+            .replace(/\([^)]*\)/g, "");
         for (const { pattern, reason, category } of VAGUE_PATTERNS) {
             if (pattern.test(testLine)) {
                 vagueLines.push({ line: i + 1, text: line.trim(), reason, category });
@@ -121,8 +131,16 @@ export function analyzeMissingSections(config, profile) {
 }
 export function analyzeDuplicates(config) {
     const phraseMap = new Map();
+    let inCodeBlock = false;
     for (let i = 0; i < config.lines.length; i++) {
-        const line = config.lines[i].trim().toLowerCase();
+        const raw = config.lines[i];
+        if (raw.trimStart().startsWith("```")) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+        }
+        if (inCodeBlock)
+            continue;
+        const line = raw.trim().toLowerCase();
         if (line.length < 20 || line.startsWith("#"))
             continue;
         // Extract 5-word ngrams to find duplicate content
@@ -159,12 +177,14 @@ export function analyzeAttentionPlacement(config) {
     const headLines = config.lines.slice(0, headSize);
     const tailLines = config.lines.slice(Math.max(0, totalLines - tailSize));
     const criticalKeywords = /\b(important|critical|never|always|must|required|forbidden|do not|don't)\b/i;
-    const criticalInHead = headLines.some((l) => criticalKeywords.test(l));
-    const criticalInTail = tailLines.some((l) => criticalKeywords.test(l));
+    // Strip parenthetical content before keyword matching — words like "critical" in
+    // "(critical info at head/tail)" are descriptive, not imperative rules.
+    const hasKeyword = (l) => criticalKeywords.test(l.replace(/\([^)]*\)/g, ""));
+    const criticalInHead = headLines.some(hasKeyword);
+    const criticalInTail = tailLines.some(hasKeyword);
     const suggestions = [];
     if (!criticalInHead && !criticalInTail) {
-        // Check if critical content exists anywhere
-        const hasCritical = config.lines.some((l) => criticalKeywords.test(l));
+        const hasCritical = config.lines.some(hasKeyword);
         if (hasCritical) {
             suggestions.push("Move critical rules (never/always/must) to the first or last 15% of the file for better LLM attention");
         }
@@ -178,18 +198,33 @@ export function analyzeStructure(config) {
     const hasHeadings = config.sections.length > 0;
     const headingCount = config.sections.length;
     const maxDepth = config.sections.reduce((max, s) => Math.max(max, s.level), 0);
-    // Lines that are long prose paragraphs (>120 chars, not a heading/list)
+    // Determine where YAML frontmatter ends so those lines are not counted as unorganized
+    // rules — frontmatter (---...---) is structural metadata, not content before a heading.
+    let frontmatterEndLine = 0;
+    if (config.lines[0]?.trim() === "---") {
+        const closeIdx = config.lines.findIndex((l, i) => i > 0 && l.trim() === "---");
+        if (closeIdx !== -1)
+            frontmatterEndLine = closeIdx + 1;
+    }
+    // Lines that are long prose paragraphs (>120 chars, not a heading/list/code)
     const longParagraphLines = [];
+    let inCodeBlock = false;
     for (let i = 0; i < config.lines.length; i++) {
         const line = config.lines[i];
+        if (line.trimStart().startsWith("```")) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+        }
+        if (inCodeBlock)
+            continue;
         if (line.length > 120 && !line.startsWith("#") && !line.startsWith("-") && !line.startsWith("*")) {
             longParagraphLines.push(i + 1);
         }
     }
-    // Rules not under any heading (appear before the first heading)
+    // Rules not under any heading (appear before the first heading, excluding frontmatter)
     const firstHeadingLine = config.sections[0]?.startLine ?? config.lines.length;
     const unorganizedRuleCount = config.lines
-        .slice(0, firstHeadingLine)
+        .slice(frontmatterEndLine, firstHeadingLine)
         .filter((l) => l.trim() && !l.startsWith("#")).length;
     return { hasHeadings, headingCount, maxDepth, longParagraphLines, unorganizedRuleCount };
 }

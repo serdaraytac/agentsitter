@@ -857,3 +857,122 @@ describe("analyze (integration)", () => {
     });
   });
 });
+
+describe("regression: parenthetical content false positives", () => {
+  it("analyzeVagueRules: does not flag keywords inside parentheses", () => {
+    // "consider using", "should be handled", "follow conventions" in parens are
+    // descriptive, not imperative rules — must not produce VAGUE_RULE.
+    const content = `# Rules
+- Auth service (consider using JWT for stateless sessions)
+- Error handling (should be handled properly in all cases)
+- Config loader (follow conventions defined in .eslintrc)
+- Actual vague rule: try to write good code
+`;
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeVagueRules(config);
+    const texts = result.vagueLines.map((v) => v.text);
+    expect(texts).not.toContain("- Auth service (consider using JWT for stateless sessions)");
+    expect(texts).not.toContain("- Error handling (should be handled properly in all cases)");
+    expect(texts).not.toContain("- Config loader (follow conventions defined in .eslintrc)");
+    // The actual vague rule must still be caught
+    expect(texts.some((t) => t.includes("try to write good code"))).toBe(true);
+  });
+
+  it("analyzeVagueRules: does not flag content inside fenced code blocks", () => {
+    // Example code showing bad patterns must not trigger vague rule detection.
+    const content = `# Rules
+- Always write real tests with assertions.
+
+## Bad examples (do not use)
+\`\`\`
+write good code and ensure quality
+follow best practices when possible
+try to handle errors properly
+\`\`\`
+`;
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeVagueRules(config);
+    const texts = result.vagueLines.map((v) => v.text);
+    expect(texts.every((t) => !t.includes("write good code"))).toBe(true);
+    expect(texts.every((t) => !t.includes("follow best practices"))).toBe(true);
+    expect(texts.every((t) => !t.includes("try to handle"))).toBe(true);
+  });
+
+  it("analyzeAttentionPlacement: does not treat parenthetical 'critical' as an imperative rule", () => {
+    // "(critical info at head/tail)" is description, not a rule — must not count as
+    // critical content for head/tail placement detection.
+    const content = `# Project
+- Attention placement (critical info at head/tail for LLM attention)
+- Issues list (severity: critical/warning/info)
+- Missing section check (variables, examples, do/don't rules)
+`.repeat(10); // pad to avoid trivially short file
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeAttentionPlacement(config);
+    // No actual imperative rules exist — suggestions must either be empty or
+    // NOT claim critical content was found at head/tail
+    if (result.suggestions.length > 0) {
+      // If a suggestion fires, it must be "move rules to top/tail", not a false positive
+      // claiming rules are already placed well (criticalInHead must be false).
+      expect(result.criticalInHead).toBe(false);
+    }
+  });
+
+  it("analyzeAttentionPlacement: does not produce ATTENTION_PLACEMENT warning when only parens contain keywords", () => {
+    // File has no real imperative rules — only parenthetical keyword mentions.
+    // Must not generate "Move critical rules" suggestion.
+    const content = Array(30).fill("- Description (critical info here, never do this example)").join("\n");
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeAttentionPlacement(config);
+    expect(result.suggestions).toHaveLength(0);
+  });
+
+  it("analyzeStructure: frontmatter lines are not counted as unorganized rules", () => {
+    // Cursor .cursor/rules/*.md files start with YAML frontmatter.
+    // These lines must not inflate unorganizedRuleCount and trigger UNORGANIZED_RULES.
+    const content = `---
+description: TypeScript coding rules
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+# TypeScript Rules
+- Always use strict mode.
+`;
+    const config = parseConfig(".cursor/rules/typescript.md", content);
+    const result = analyzeStructure(config);
+    expect(result.unorganizedRuleCount).toBe(0);
+  });
+
+  it("analyzeStructure: long lines inside code blocks are not flagged as long paragraphs", () => {
+    const longUrl = "https://example.com/" + "a".repeat(120);
+    const content = `# Rules
+- Keep prose short.
+
+\`\`\`bash
+${longUrl}
+\`\`\`
+`;
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeStructure(config);
+    expect(result.longParagraphLines).toHaveLength(0);
+  });
+
+  it("analyzeDuplicates: repeated content inside code blocks is not flagged", () => {
+    // The same five-word phrase appearing in two code block examples must not
+    // produce a DUPLICATE_CONTENT warning.
+    const repeated = "always use typescript strict mode for all files";
+    const content = `# Rules
+- Use TypeScript everywhere.
+
+\`\`\`
+// Bad example: ${repeated}
+\`\`\`
+
+\`\`\`
+// Another bad example: ${repeated}
+\`\`\`
+`;
+    const config = parseConfig("CLAUDE.md", content);
+    const result = analyzeDuplicates(config);
+    expect(result.duplicatePhrases).toHaveLength(0);
+  });
+});

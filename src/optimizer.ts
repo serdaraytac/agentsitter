@@ -314,7 +314,10 @@ function moveCriticalRulesToTop(lines: string[], issues: Issue[]): { lines: stri
 
   const criticalLines: number[] = [];
   for (let i = firstHeading + 1; i < lines.length; i++) {
-    if (criticalKeywords.test(lines[i]) && !lines[i].startsWith("#")) {
+    // Strip parenthetical content before matching — keywords in descriptions like
+    // "(severity: critical/warning/info)" or "(do/don't rules)" are not imperative rules.
+    const lineWithoutParens = lines[i].replace(/\([^)]*\)/g, "");
+    if (criticalKeywords.test(lineWithoutParens) && !lines[i].startsWith("#")) {
       criticalLines.push(i);
     }
   }

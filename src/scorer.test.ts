@@ -123,4 +123,25 @@ describe("score", () => {
     // Claude loses the extra coverage penalty; cline does not
     expect(claudeScore.categories.coverage).toBeLessThanOrEqual(clineScore.categories.coverage);
   });
+
+  it("CLAUDE_MISSING_BUILD_COMMANDS only penalizes coverage, not structure", () => {
+    // Regression: this issue was double-counted — penalized in both scoreStructure and
+    // scoreCoverage. Now it must only affect coverage.
+    const noCommands   = "# Project\n\n## Rules\n- Always use TypeScript.\n";
+    const withCommands = "# Project\n\n## Commands\n```bash\nnpm test\n```\n\n## Rules\n- Always use TypeScript.\n";
+    const withResult    = score(analyze(parseConfig("CLAUDE.md", withCommands)));
+    const withoutResult = score(analyze(parseConfig("CLAUDE.md", noCommands)));
+    expect(withResult.categories.structure).toBe(withoutResult.categories.structure);
+    expect(withResult.categories.coverage).toBeGreaterThan(withoutResult.categories.coverage);
+  });
+
+  it("missing section penalty is flat per section, not ratio-based", () => {
+    // Regression: old ratio formula punished platforms with fewer expected sections much harder.
+    // Copilot expects 2 sections; one missing should cost exactly 5 pts (not 13 pts as before).
+    const allSections = "# Project\n\n## Instructions\n- Use TypeScript.\n\n## Style\nUse 2-space indent.\n";
+    const oneMissing  = "# Project\n\n## Instructions\n- Use TypeScript.\n";
+    const fullScore    = score(analyze(parseConfig(".github/copilot-instructions.md", allSections)));
+    const partialScore = score(analyze(parseConfig(".github/copilot-instructions.md", oneMissing)));
+    expect(fullScore.categories.coverage - partialScore.categories.coverage).toBe(5);
+  });
 });
