@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>agentsitter — AI Agent Config Analyzer</title>
 
-  <!-- Open Graph / social sharing -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="agentsitter — AI Agent Config Analyzer" />
   <meta property="og:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more." />
@@ -15,90 +14,147 @@
   <meta name="twitter:title" content="agentsitter — AI Agent Config Analyzer" />
   <meta name="twitter:description" content="Score, fix, and share your AI coding agent config. Supports Claude Code, Cursor, Copilot, Cline, Gemini CLI, and 8 more." />
 
-  <!-- JetBrains Mono: hero display font -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Lora:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
 
   <style>
+    @import url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css');
+    @import url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-mono/style.css');
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #1c2230;
-      --border: #30363d;
-      --border-sub: #21262d;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --accent: #d97706;
-      --ok: #3fb950;
-      --r: 8px;
+      --bg:           #FAF8F5;
+      --surface:      #F3F0EB;
+      --surface2:     #EDE9E2;
+      --border:       #D9D3C8;
+      --border-sub:   #E5E1D9;
+      --text:         #111827;
+      --muted:        #6B7280;
+      --accent:       #D97706;
+      --accent-hover: #B45309;
+      --ok:           #059669;
+      --r:            8px;
+
+      --font-mono:  'JetBrains Mono', monospace;
+      --font-body:  'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Lora', Georgia, serif;
     }
 
     html { scroll-behavior: smooth; }
     body {
       background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font-body);
       font-size: 15px; line-height: 1.6;
     }
 
     /* ── Header ──────────────────────────────────────────────── */
     .hdr {
-      padding: 14px 24px; border-bottom: 1px solid var(--border);
-      background: var(--surface); display: flex; align-items: center; gap: 10px;
+      padding: 12px 24px; border-bottom: 1px solid var(--border);
+      background: rgba(250,248,245,0.92); backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: 12px;
       position: sticky; top: 0; z-index: 10;
     }
-    .logo { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; text-decoration: none; color: var(--text); }
+    .logo-block { display: flex; flex-direction: column; gap: 1px; }
+    .logo {
+      font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+      letter-spacing: -0.02em; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 5px;
+    }
     .logo em { color: var(--accent); font-style: normal; }
+    .logo-tagline { font-size: 9px; color: var(--muted); padding-left: 22px; line-height: 1; }
     .ver {
-      font-size: 10px; color: var(--muted); background: var(--bg);
-      padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--surface); padding: 2px 7px; border-radius: 99px;
+      border: 1px solid var(--border);
     }
     .hdr-r { margin-left: auto; display: flex; align-items: center; gap: 16px; }
     .gh-link {
-      color: var(--muted); font-size: 12px; text-decoration: none;
+      color: var(--muted); font-size: 13px; text-decoration: none;
       display: flex; align-items: center; gap: 5px; transition: color .12s;
     }
     .gh-link:hover { color: var(--text); }
     .hdr-cta {
-      padding: 6px 16px; background: var(--accent); color: #0d1117;
-      font-size: 13px; font-weight: 700; border-radius: 6px; text-decoration: none;
-      transition: filter .12s; white-space: nowrap;
+      padding: 7px 18px; background: var(--text); color: var(--bg);
+      font-size: 13px; font-weight: 600; border-radius: 6px; text-decoration: none;
+      transition: background .12s; white-space: nowrap;
     }
-    .hdr-cta:hover { filter: brightness(1.1); }
+    .hdr-cta:hover { background: #1f2937; }
 
     /* ── Hero ────────────────────────────────────────────────── */
     .hero {
-      text-align: center; padding: 80px 24px 64px;
+      text-align: center; padding: 72px 24px 60px;
       border-bottom: 1px solid var(--border);
     }
-    .hero-emoji { font-size: 52px; line-height: 1; margin-bottom: 24px; }
+
+    /* Score ring */
+    .hero-ring-wrap {
+      width: 240px; height: 240px; position: relative;
+      margin: 0 auto 48px;
+      filter: drop-shadow(0 8px 32px rgba(217,119,6,0.18));
+    }
+    .hero-ring-svg { width: 240px; height: 240px; }
+    .hero-ring-fill {
+      animation: ring-in 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    @keyframes ring-in {
+      from { stroke-dashoffset: 628; }
+      to   { stroke-dashoffset: 94; }
+    }
+    .hero-ring-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    @property --score-num { syntax: '<integer>'; initial-value: 0; inherits: false; }
+    .hero-ring-num {
+      font-family: var(--font-mono); font-size: 64px; font-weight: 700;
+      color: var(--text); line-height: 1;
+      --score-num: 0;
+      animation: score-count 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
+      counter-reset: score var(--score-num);
+    }
+    .hero-ring-num::before { content: counter(score); }
+    @keyframes score-count { from { --score-num: 0; } to { --score-num: 85; } }
+    .hero-ring-grade {
+      font-family: var(--font-serif); font-size: 28px; font-weight: 700;
+      font-style: italic; color: var(--accent); line-height: 1;
+    }
+    .hero-ring-lbl {
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-top: 4px;
+    }
+
+    /* Headline */
     .hero h1 {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(1.75rem, 4vw, 3.25rem);
-      font-weight: 700; line-height: 1.2; letter-spacing: -0.03em;
-      color: var(--text); max-width: 760px; margin: 0 auto 16px;
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 4.5vw, 3.6rem);
+      font-weight: 700; font-style: italic;
+      line-height: 1.15; letter-spacing: -0.01em;
+      color: var(--text); max-width: 720px; margin: 0 auto 20px;
     }
-    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero h1 em { color: var(--accent); font-style: italic; }
+    .hero h1 .h1-fix {
+      display: block; font-style: normal;
+      font-size: 1.15em; letter-spacing: -0.02em;
+    }
     .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      color: var(--muted); margin-bottom: 10px;
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--muted); margin-bottom: 8px;
     }
-    .hero-desc {
-      font-size: 14px; color: var(--muted); margin-bottom: 36px; opacity: .8;
-    }
+    .hero-desc { font-size: 14px; color: var(--muted); margin-bottom: 36px; opacity: .75; }
     .hero-cta {
-      display: inline-block; padding: 14px 36px;
-      background: var(--accent); color: #0d1117;
-      font-size: 16px; font-weight: 700; border-radius: var(--r);
-      text-decoration: none; transition: filter .12s;
-      min-height: 44px; display: inline-flex; align-items: center;
+      display: inline-flex; align-items: center;
+      padding: 14px 36px; background: var(--text); color: var(--bg);
+      font-family: var(--font-body); font-size: 16px; font-weight: 600;
+      border-radius: var(--r); text-decoration: none; transition: background .12s;
+      min-height: 44px;
     }
-    .hero-cta:hover { filter: brightness(1.1); }
+    .hero-cta:hover { background: #1f2937; }
     .hero-secondary {
-      margin-top: 14px; display: flex; align-items: center; justify-content: center;
-      gap: 20px; flex-wrap: wrap;
+      margin-top: 14px; display: flex; align-items: center;
+      justify-content: center; gap: 20px; flex-wrap: wrap;
     }
     .hero-gh {
       color: var(--muted); font-size: 13px; text-decoration: none;
@@ -106,41 +162,33 @@
     }
     .hero-gh:hover { color: var(--text); }
     .hero-install {
-      font-family: 'SF Mono','Fira Code',Consolas,monospace;
+      font-family: var(--font-mono);
       font-size: 12px; color: var(--muted); background: var(--surface);
       border: 1px solid var(--border); border-radius: 5px; padding: 4px 10px;
     }
 
     /* ── Platform strip ──────────────────────────────────────── */
     .plat-strip {
-      padding: 24px 0; border-bottom: 1px solid var(--border);
+      padding: 22px 0; border-bottom: 1px solid var(--border);
       overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
     }
-    .plat-strip-inner {
-      display: inline-flex; gap: 10px; padding: 0 24px;
-    }
+    .plat-strip-inner { display: inline-flex; gap: 10px; padding: 0 24px; }
     .plat-chip {
       display: inline-flex; align-items: center; gap: 7px;
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 99px; padding: 5px 13px; font-size: 12px; color: var(--muted);
       white-space: nowrap; flex-shrink: 0;
     }
-    .plat-chip-icon {
-      width: 20px; height: 20px; border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 8px; font-weight: 800; color: #fff; flex-shrink: 0;
+    .plat-chip-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
 
     /* ── Features ────────────────────────────────────────────── */
-    .features {
-      display: flex; gap: 0; border-bottom: 1px solid var(--border);
-    }
-    .feature {
-      flex: 1; padding: 40px 28px; border-right: 1px solid var(--border);
-    }
+    .features { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+    .feature { flex: 1; padding: 40px 28px; border-right: 1px solid var(--border); }
     .feature:last-child { border-right: none; }
     .feature-num {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 11px; font-weight: 600; color: var(--accent);
       text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
     }
@@ -154,73 +202,69 @@
     }
 
     /* ── Hall of Fame ────────────────────────────────────────── */
-    .hof {
-      padding: 60px 24px; border-bottom: 1px solid var(--border);
-      text-align: center;
-    }
+    .hof { padding: 60px 24px; border-bottom: 1px solid var(--border); text-align: center; }
     .hof-label {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 11px; font-weight: 600; color: var(--accent);
       text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
     }
     .hof h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
     .hof-desc { font-size: 14px; color: var(--muted); margin-bottom: 36px; }
-    .hof-cards {
-      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-    }
+    .hof-cards { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
     .hof-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-      padding: 20px 22px; display: flex; flex-direction: column; align-items: center; gap: 12px;
-      width: 220px; flex-shrink: 0;
+      padding: 20px 22px; display: flex; flex-direction: column;
+      align-items: center; gap: 12px; width: 220px; flex-shrink: 0;
     }
-    .hof-ring { position: relative; }
     .hof-plat-badge {
       width: 36px; height: 36px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800; color: #fff;
-      margin-bottom: 4px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: #fff;
     }
     .hof-score {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 32px; font-weight: 700; line-height: 1;
+      font-family: var(--font-mono); font-size: 32px; font-weight: 700; line-height: 1;
     }
     .hof-grade {
-      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-top: 2px;
+      font-family: var(--font-serif); font-size: 13px; font-weight: 700; font-style: italic;
+      padding: 2px 10px; border-radius: 4px; margin-top: 2px;
     }
     .hof-plat-name { font-size: 12px; font-weight: 600; }
     .hof-summary { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.45; }
 
-    .grade-a { color: #3fb950; background: rgba(63,185,80,.12); }
-    .grade-b { color: #58a6ff; background: rgba(88,166,255,.12); }
-    .grade-c { color: #d29922; background: rgba(210,153,34,.12); }
+    .grade-a { color: #059669; background: rgba(5,150,105,.1); }
+    .grade-b { color: #2563EB; background: rgba(37,99,235,.1); }
+    .grade-c { color: #D97706; background: rgba(217,119,6,.1); }
 
     @media (max-width: 640px) {
       .hof-cards { flex-direction: column; align-items: center; }
       .hof-card { width: 100%; max-width: 320px; }
     }
 
-    /* ── Bottom CTA ──────────────────────────────────────────── */
-    .bottom-cta {
-      padding: 64px 24px; text-align: center;
+    /* ── Amber CTA band ──────────────────────────────────────── */
+    .amber-band {
+      background: var(--accent); padding: 72px 24px; text-align: center;
     }
-    .bottom-cta h2 {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 700; margin-bottom: 12px;
+    .amber-band h2 {
+      font-family: var(--font-serif); font-style: italic;
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem); font-weight: 700;
+      color: #fff; margin-bottom: 12px;
     }
-    .bottom-cta p { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
-    .bottom-cta-link {
+    .amber-band p { font-size: 15px; color: rgba(255,255,255,.85); margin-bottom: 28px; }
+    .btn-white {
       display: inline-flex; align-items: center;
-      padding: 14px 36px; background: var(--accent); color: #0d1117;
-      font-size: 16px; font-weight: 700; border-radius: var(--r);
-      text-decoration: none; transition: filter .12s; min-height: 44px;
+      padding: 14px 36px; background: #fff; color: var(--accent);
+      font-family: var(--font-body); font-size: 16px; font-weight: 700;
+      border-radius: var(--r); text-decoration: none; transition: opacity .12s;
+      min-height: 44px;
     }
-    .bottom-cta-link:hover { filter: brightness(1.1); }
+    .btn-white:hover { opacity: .92; }
 
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
       border-top: 1px solid var(--border); padding: 20px 24px;
       display: flex; align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted);
+      background: var(--surface);
     }
     .footer a { color: var(--muted); text-decoration: none; }
     .footer a:hover { color: var(--text); }
@@ -229,8 +273,11 @@
 <body>
 
 <header class="hdr">
-  <a href="/" class="logo">🍼 agent<em>sitter</em></a>
-  <span class="ver">v1.1.0</span>
+  <div class="logo-block">
+    <a href="/" class="logo">🍼 agent<em>sitter</em></a>
+    <div class="logo-tagline">Fix and maintain your AI agent behavior</div>
+  </div>
+  <span class="ver">v1.2.0</span>
   <div class="hdr-r">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="gh-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -242,8 +289,22 @@
 
 <!-- ── Hero ──────────────────────────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-emoji">🍼</div>
-  <h1>Your AI doesn't know<br>who you are.<br><em>agentsitter fixes that.</em></h1>
+  <div class="hero-ring-wrap">
+    <svg class="hero-ring-svg" viewBox="0 0 240 240">
+      <circle cx="120" cy="120" r="100" fill="none" stroke="#EDE9E2" stroke-width="22"/>
+      <circle class="hero-ring-fill" cx="120" cy="120" r="100" fill="none"
+        stroke="#D97706" stroke-width="22" stroke-linecap="round"
+        stroke-dasharray="628" stroke-dashoffset="94"
+        transform="rotate(-90 120 120)"/>
+    </svg>
+    <div class="hero-ring-center">
+      <div class="hero-ring-num"></div>
+      <div class="hero-ring-grade">A</div>
+      <div class="hero-ring-lbl">example</div>
+    </div>
+  </div>
+
+  <h1>Your AI doesn't know<br><em>who you are.</em><br><span class="h1-fix">Fix that.</span></h1>
   <p class="hero-sub">Paste your config. Get a score. Fix it in seconds.</p>
   <p class="hero-desc">Score, fix, and share your AI coding agent config. 13 platforms.</p>
   <a href="/demo/" class="hero-cta">Score your config →</a>
@@ -259,19 +320,19 @@
 <!-- ── Platform strip ─────────────────────────────────────────────── -->
 <div class="plat-strip" aria-label="Supported platforms">
   <div class="plat-strip-inner">
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#d97706">CC</div>Claude Code</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#6366f1">CU</div>Cursor</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#059669">CL</div>Cline</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#10b981">CO</div>Codex</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#4285f4">GE</div>Gemini CLI</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#8b5cf6">CP</div>Copilot</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#0ea5e9">WS</div>Windsurf</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#f59e0b">AM</div>Amp</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#ef4444">OC</div>OpenCode</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#7c3aed">WA</div>Warp</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#06b6d4">KI</div>Kimi Code</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#ec4899">AG</div>Antigravity</div>
-    <div class="plat-chip"><div class="plat-chip-icon" style="background:#f97316">FB</div>Firebender</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#d97706"></div>Claude Code</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#6366f1"></div>Cursor</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#059669"></div>Cline</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#10b981"></div>Codex</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#4285f4"></div>Gemini CLI</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#8b5cf6"></div>Copilot</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#0ea5e9"></div>Windsurf</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#f59e0b"></div>Amp</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#ef4444"></div>OpenCode</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#7c3aed"></div>Warp</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#06b6d4"></div>Kimi Code</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#ec4899"></div>Antigravity</div>
+    <div class="plat-chip"><div class="plat-chip-dot" style="background:#f97316"></div>Firebender</div>
   </div>
 </div>
 
@@ -303,7 +364,7 @@
     <div class="hof-card">
       <div class="hof-plat-badge" style="background:#d97706">CC</div>
       <div>
-        <div class="hof-score" style="color:#3fb950">94</div>
+        <div class="hof-score" style="color:#059669">94</div>
         <div class="hof-grade grade-a">Grade A</div>
       </div>
       <div class="hof-plat-name">Claude Code</div>
@@ -312,7 +373,7 @@
     <div class="hof-card">
       <div class="hof-plat-badge" style="background:#6366f1">CU</div>
       <div>
-        <div class="hof-score" style="color:#58a6ff">78</div>
+        <div class="hof-score" style="color:#2563EB">78</div>
         <div class="hof-grade grade-b">Grade B</div>
       </div>
       <div class="hof-plat-name">Cursor</div>
@@ -321,7 +382,7 @@
     <div class="hof-card">
       <div class="hof-plat-badge" style="background:#4285f4">GE</div>
       <div>
-        <div class="hof-score" style="color:#d29922">61</div>
+        <div class="hof-score" style="color:#D97706">61</div>
         <div class="hof-grade grade-c">Grade C</div>
       </div>
       <div class="hof-plat-name">Gemini CLI</div>
@@ -330,16 +391,16 @@
   </div>
 </section>
 
-<!-- ── Bottom CTA ─────────────────────────────────────────────────── -->
-<section class="bottom-cta">
+<!-- ── Amber CTA band ─────────────────────────────────────────────── -->
+<section class="amber-band">
   <h2>What's your score?</h2>
-  <p>Paste your config and find out in under 10 seconds.</p>
-  <a href="/demo/" class="bottom-cta-link">Score your config →</a>
+  <p>Paste your config and find out in under 10 seconds. No account, no install.</p>
+  <a href="/demo/" class="btn-white">Score your config free →</a>
 </section>
 
 <!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <span>🍼 agentsitter v1.1.0</span>
+  <span>🍼 agentsitter v1.2.0</span>
   <div style="display:flex;gap:16px">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener">GitHub</a>
     <a href="https://www.npmjs.com/package/@serdaraytac/agentsitter" target="_blank" rel="noopener">npm</a>

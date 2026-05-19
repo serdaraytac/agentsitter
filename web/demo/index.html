@@ -18,43 +18,62 @@
   <!-- canvas-confetti via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js" crossorigin="anonymous"></script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Lora:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+
   <style>
+    @import url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css');
+    @import url('https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-mono/style.css');
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --surface2: #1c2230;
-      --border: #30363d;
-      --border-sub: #21262d;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --accent: #d97706;
-      --crit: #f85149;
-      --warn: #d29922;
-      --info: #388bfd;
-      --ok: #3fb950;
-      --r: 8px;
+      --bg:           #FAF8F5;
+      --surface:      #F3F0EB;
+      --surface2:     #EDE9E2;
+      --border:       #D9D3C8;
+      --border-sub:   #E5E1D9;
+      --text:         #111827;
+      --muted:        #6B7280;
+      --accent:       #D97706;
+      --crit:         #DC2626;
+      --warn:         #D97706;
+      --info:         #2563EB;
+      --ok:           #059669;
+      --r:            8px;
+
+      --font-mono:  'JetBrains Mono', monospace;
+      --font-body:  'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Lora', Georgia, serif;
     }
 
     html, body { height: 100%; }
     body {
       background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font-body);
       font-size: 14px; line-height: 1.5;
     }
 
     /* ── Header ──────────────────────────────────────────────── */
     .hdr {
-      padding: 11px 18px; border-bottom: 1px solid var(--border);
-      background: var(--surface); display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px; border-bottom: 1px solid var(--border);
+      background: rgba(250,248,245,0.92); backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: 10px;
       position: sticky; top: 0; z-index: 10;
     }
-    .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+    .logo-block { display: flex; flex-direction: column; gap: 1px; }
+    .logo {
+      font-family: var(--font-mono); font-size: 15px; font-weight: 700;
+      letter-spacing: -0.02em; text-decoration: none; color: var(--text);
+      display: flex; align-items: center; gap: 5px;
+    }
     .logo em { color: var(--accent); font-style: normal; }
+    .logo-tagline { font-size: 9px; color: var(--muted); padding-left: 22px; line-height: 1; }
     .ver {
-      font-size: 10px; color: var(--muted); background: var(--bg);
-      padding: 2px 7px; border-radius: 99px; border: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+      background: var(--surface); padding: 2px 7px; border-radius: 99px;
+      border: 1px solid var(--border);
     }
     .hdr-r { margin-left: auto; }
     .gh-link {
@@ -89,7 +108,7 @@
       transition: border-color .12s, background .12s, color .12s;
     }
     .plat-btn:hover { border-color: var(--border); color: var(--text); background: var(--surface2); }
-    .plat-btn.on { border-color: var(--accent); background: rgba(88,166,255,.08); color: var(--text); }
+    .plat-btn.on { border-color: var(--accent); background: rgba(217,119,6,.08); color: var(--text); }
     .plat-icon {
       width: 28px; height: 28px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
@@ -105,18 +124,18 @@
       cursor: pointer; transition: all .12s; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; gap: 5px;
     }
-    .drop-z:hover, .drop-z.over { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,.04); }
+    .drop-z:hover, .drop-z.over { border-color: var(--accent); color: var(--accent); background: rgba(217,119,6,.04); }
     #fileInput { display: none; }
     .cfg-ta {
       flex: 1; min-height: 100px;
       background: var(--bg); border: 1px solid var(--border-sub); border-radius: var(--r);
-      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      color: var(--text); font-family: var(--font-mono);
       font-size: 11.5px; padding: 9px; resize: none; outline: none; line-height: 1.55;
     }
     .cfg-ta:focus { border-color: var(--accent); }
-    .cfg-ta::placeholder { color: #424a59; }
+    .cfg-ta::placeholder { color: var(--muted); opacity: .6; }
     .analyze-btn {
-      padding: 9px; background: var(--accent); color: #0d1117;
+      padding: 9px; background: var(--accent); color: #fff;
       font-weight: 600; font-size: 13px; border: none; border-radius: var(--r);
       cursor: pointer; transition: background .12s; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -126,7 +145,7 @@
 
     /* ── Shared mode hint (left panel) ───────────────────────── */
     .shared-mode-hint {
-      display: none; background: rgba(88,166,255,.05); border: 1px solid rgba(88,166,255,.15);
+      display: none; background: rgba(217,119,6,.06); border: 1px solid rgba(217,119,6,.2);
       border-radius: 5px; padding: 7px 10px; font-size: 11px; color: var(--accent);
       margin: 0 9px 4px; text-align: center; flex-shrink: 0;
     }
@@ -162,7 +181,7 @@
 
     .shared-banner {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.2);
+      background: rgba(217,119,6,.06); border: 1px solid rgba(217,119,6,.2);
       border-radius: var(--r); padding: 9px 12px; margin-bottom: 14px; font-size: 12px;
     }
     .shared-banner-text { color: var(--muted); flex: 1; }
@@ -204,7 +223,7 @@
       border: none; white-space: nowrap;
     }
     .action-btn.primary {
-      background: var(--accent); color: #0d1117;
+      background: var(--accent); color: #fff;
       min-height: 36px;
     }
     .action-btn.primary:hover { filter: brightness(1.1); }
@@ -264,7 +283,7 @@
     /* ── Issues ──────────────────────────────────────────────── */
     .issue-list { display: flex; flex-direction: column; gap: 7px; }
     .no-issues {
-      background: rgba(63,185,80,.07); border: 1px solid rgba(63,185,80,.25);
+      background: rgba(5,150,105,.07); border: 1px solid rgba(5,150,105,.25);
       border-radius: var(--r); padding: 20px; text-align: center; color: var(--ok); font-size: 13px;
     }
     .issue {
@@ -278,9 +297,9 @@
       font-size: 9px; font-weight: 700; text-transform: uppercase;
       padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px;
     }
-    .sev.critical { background: rgba(248,81,73,.15); color: var(--crit); }
-    .sev.warning  { background: rgba(210,153,34,.15); color: var(--warn); }
-    .sev.info     { background: rgba(56,139,253,.15); color: var(--info); }
+    .sev.critical { background: rgba(220,38,38,.1);   color: var(--crit); }
+    .sev.warning  { background: rgba(217,119,6,.12);  color: var(--warn); }
+    .sev.info     { background: rgba(37,99,235,.1);   color: var(--info); }
     .iss-body { flex: 1; min-width: 0; }
     .iss-code { font-size: 9px; font-family: monospace; color: var(--muted); margin-bottom: 2px; }
     .iss-msg { font-size: 12px; color: var(--text); line-height: 1.45; }
@@ -308,7 +327,7 @@
     .copy-btn:hover { color: var(--text); border-color: var(--accent); }
     .opt-ta {
       width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r);
-      color: var(--text); font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      color: var(--text); font-family: var(--font-mono);
       font-size: 11.5px; padding: 12px; min-height: 260px; outline: none; resize: vertical; line-height: 1.55;
     }
 
@@ -325,10 +344,10 @@
     .cta-desc { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
     .cta-install-wrap {
       display: flex; align-items: center; gap: 8px; margin-bottom: 9px;
-      background: var(--bg); border: 1px solid var(--border-sub); border-radius: 6px; padding: 7px 10px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px;
     }
     .cta-install-cmd {
-      flex: 1; font-family: 'SF Mono','Fira Code',Consolas,monospace; font-size: 11px;
+      flex: 1; font-family: var(--font-mono); font-size: 11px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .cta-copy-btn {
@@ -338,8 +357,8 @@
     .cta-copy-btn:hover { color: var(--text); border-color: var(--accent); }
     .cta-usage-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; }
     .cta-usage-cmd {
-      display: block; font-family: 'SF Mono','Fira Code',Consolas,monospace;
-      font-size: 11px; color: var(--muted); background: var(--bg); border: 1px solid var(--border-sub);
+      display: block; font-family: var(--font-mono);
+      font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border);
       border-radius: 5px; padding: 5px 9px; word-break: break-all;
     }
     .star-cta-card {
@@ -356,11 +375,11 @@
     /* ── Misc ────────────────────────────────────────────────── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spin {
-      width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.3);
-      border-top-color: #0d1117; border-radius: 50%; animation: spin .7s linear infinite;
+      width: 14px; height: 14px; border: 2px solid rgba(217,119,6,.25);
+      border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite;
     }
     .err-box {
-      background: rgba(248,81,73,.08); border: 1px solid var(--crit);
+      background: rgba(220,38,38,.06); border: 1px solid var(--crit);
       border-radius: var(--r); padding: 13px; color: var(--crit); font-size: 13px;
     }
     ::-webkit-scrollbar { width: 5px; }
@@ -378,10 +397,13 @@
 <body>
 
 <header class="hdr">
-  <a href="../" style="text-decoration:none;color:inherit;">
-    <div class="logo">🍼 agent<em>sitter</em></div>
+  <a href="../" style="text-decoration:none;">
+    <div class="logo-block">
+      <div class="logo">🍼 agent<em>sitter</em></div>
+      <div class="logo-tagline">Fix and maintain your AI agent behavior</div>
+    </div>
   </a>
-  <span class="ver">v1.1.0</span>
+  <span class="ver">v1.2.0</span>
   <div class="hdr-r">
     <a href="https://github.com/serdaraytac/agentsitter" target="_blank" rel="noopener" class="gh-link">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -575,15 +597,15 @@ function switchTab(t) {
 // ── Score ring SVG ─────────────────────────────────────────────────────────
 function scoreRing(s, grade) {
   const R = 44, C = 2 * Math.PI * R;
-  const clr = s>=90 ? '#3fb950' : s>=75 ? '#58a6ff' : s>=60 ? '#d29922' : s>=40 ? '#f0883e' : '#f85149';
+  const clr = s>=90 ? '#059669' : s>=75 ? '#2563EB' : s>=60 ? '#D97706' : s>=40 ? '#EA580C' : '#DC2626';
   const dash = (s / 100 * C).toFixed(1);
   return `<svg width="106" height="106" viewBox="0 0 106 106">
-    <circle cx="53" cy="53" r="${R}" fill="none" stroke="#21262d" stroke-width="9"/>
+    <circle cx="53" cy="53" r="${R}" fill="none" stroke="#EDE9E2" stroke-width="9"/>
     <circle cx="53" cy="53" r="${R}" fill="none" stroke="${clr}" stroke-width="9"
       stroke-dasharray="${dash} ${C.toFixed(1)}" stroke-linecap="round"
       transform="rotate(-90 53 53)"/>
     <text x="53" y="48" text-anchor="middle" dominant-baseline="central"
-      fill="#e6edf3" font-size="26" font-weight="700" font-family="-apple-system,sans-serif" id="scoreRingNum">${s}</text>
+      fill="#111827" font-size="26" font-weight="700" font-family="-apple-system,sans-serif" id="scoreRingNum">${s}</text>
     <text x="53" y="67" text-anchor="middle" fill="${clr}" font-size="11" font-weight="600"
       font-family="-apple-system,sans-serif">Grade ${grade}</text>
   </svg>`;
@@ -592,7 +614,7 @@ function scoreRing(s, grade) {
 // ── Category bar ───────────────────────────────────────────────────────────
 function catBar(label, val) {
   const p = Math.round((val/25)*100);
-  const clr = p>=80 ? '#3fb950' : p>=60 ? '#d29922' : '#f85149';
+  const clr = p>=80 ? '#059669' : p>=60 ? '#D97706' : '#DC2626';
   return `<div class="cat-row">
     <div class="cat-lbl">${label}</div>
     <div class="cat-track"><div class="cat-fill" style="width:${p}%;background:${clr}"></div></div>
@@ -906,7 +928,7 @@ function showResults(data) {
     </div>
     <div class="stat">
       <div class="stat-lbl">Issues</div>
-      <div class="stat-val" style="color:${a.issues.length>0?'#f85149':'#3fb950'}">${a.issues.length}</div>
+      <div class="stat-val" style="color:${a.issues.length>0?'#DC2626':'#059669'}">${a.issues.length}</div>
     </div>`;
 
   // Score card
