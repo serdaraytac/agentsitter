@@ -31,7 +31,7 @@ because your config files are.
 👉 You think your agent is broken  
 👉 But your config is
 
-> **Score yours now:** [serdaraytac.github.io/agentsitter/scoring/](https://serdaraytac.github.io/agentsitter/scoring/) — paste your config, get a grade in seconds. No install.
+> **Score yours now:** [serdaraytac.github.io/agentsitter/](https://serdaraytac.github.io/agentsitter/) — paste your config, get a grade in seconds. No install.
 
 ---
 
