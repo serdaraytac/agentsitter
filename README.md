@@ -2,7 +2,7 @@
 
 <h1 style="font-size:2.5em">Agent Sitter</h1>
 
-![License](https://img.shields.io/badge/license-ELv2-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
 ![Last Commit](https://img.shields.io/github/last-commit/serdaraytac/agentsitter)
 
 </div>
@@ -355,4 +355,4 @@ Then `optimize_config` to fix it automatically.
 
 ## License
 
-Elastic License 2.0
+MIT
