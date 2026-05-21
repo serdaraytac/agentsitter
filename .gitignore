@@ -7,3 +7,4 @@ dist/
 .claude/settings.local.json
 web/bundle.js
 web/scoring/bundle.js
+.gstack/
