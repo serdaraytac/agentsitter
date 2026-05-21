@@ -1,6 +1,6 @@
 {
   "name": "@serdaraytac/agentsitter",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Analyze, score, and optimize AI coding agent config files",
   "main": "dist/mcp-server.js",
   "bin": {

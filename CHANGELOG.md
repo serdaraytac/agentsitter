@@ -2,6 +2,12 @@
 
 All notable changes to agentsitter are documented here.
 
+## [1.3.4] - 2026-05-21
+
+### Changed
+- License switched from Elastic-2.0 to MIT.
+- README updated with MIT badge and MIT footer note.
+
 ## [1.2.0] - 2026-05-19
 
 ### Added
