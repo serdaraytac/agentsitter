@@ -81,6 +81,9 @@ export interface StructureResult {
 
 export interface FormatComplianceResult {
   issues: Issue[];
+  // Distinct XML tag pairs found outside fenced code blocks (Claude-only; 0 for all other platforms).
+  // Used by scorer to award structure bonus for well-structured XML configs.
+  xmlSectionCount: number;
 }
 
 const CHARS_PER_TOKEN = 4;
@@ -516,13 +519,32 @@ function findCommandOutsideBlock(
   return [];
 }
 
+// Returns the number of distinct XML tag pair names (e.g. <style>…</style>) found outside fenced code blocks.
+// Used both to skip the XML suggestion when tags already exist and to compute the scorer bonus.
+function countXmlSections(config: ParsedConfig): number {
+  let insideBlock = false;
+  const externalLines: string[] = [];
+  for (const line of config.lines) {
+    if (line.trimStart().startsWith("```")) { insideBlock = !insideBlock; continue; }
+    if (!insideBlock) externalLines.push(line);
+  }
+  const text = externalLines.join("\n");
+  const tagNames = new Set<string>();
+  // Match only proper closing-tag pairs (not self-closing or HTML void elements) to avoid noise
+  for (const match of text.matchAll(/<([a-z][a-z0-9_-]*)(?:\s[^>]*)?>[\s\S]*?<\/\1>/gim)) {
+    tagNames.add(match[1].toLowerCase());
+  }
+  return tagNames.size;
+}
+
 // Claude Code: CLAUDE.md is injected into every context window — completeness and token efficiency both matter.
 // Commands must live in fenced code blocks so Claude Code can parse and run them without reading package.json.
 // Supports @-import syntax (@./path.md) to split large files; imports inside code blocks are not resolved.
 // Unfilled [TODO:] placeholders left in production configs are worse than omission — the model cannot act on them.
 // Source: docs.anthropic.com/en/docs/claude-code/memory
-function checkClaudeFormat(config: ParsedConfig): Issue[] {
+function checkClaudeFormat(config: ParsedConfig): { issues: Issue[]; xmlSectionCount: number } {
   const issues: Issue[] = [];
+  const xmlSectionCount = countXmlSections(config);
 
   // Commands outside code blocks
   const commandIssues = findCommandOutsideBlock(
@@ -580,7 +602,30 @@ function checkClaudeFormat(config: ParsedConfig): Issue[] {
     });
   }
 
-  return issues;
+  // XML structuring suggestion — fires only when file is complex enough to benefit (≥3 sections,
+  // ≥15 content lines) and has no existing XML tags outside code blocks.
+  // Anthropic's own prompting best-practices page uses XML tags (<critical_rules>, <frontend_aesthetics>,
+  // etc.) directly in system prompts — the same layer CLAUDE.md occupies.
+  // Severity is "info"; no score penalty (see NO_SCORE_IMPACT_CODES in scorer.ts).
+  if (xmlSectionCount === 0) {
+    let insideBlock2 = false;
+    let contentLineCount = 0;
+    for (const line of config.lines) {
+      if (line.trimStart().startsWith("```")) { insideBlock2 = !insideBlock2; continue; }
+      if (insideBlock2) continue;
+      const t = line.trim();
+      if (t && !t.startsWith("#")) contentLineCount++;
+    }
+    if (config.sections.length >= 3 && contentLineCount >= 10) {
+      issues.push({
+        code: "CLAUDE_XML_TAGS_SUGGESTED",
+        severity: "info",
+        message: `CLAUDE.md has ${config.sections.length} sections — wrapping rule groups in XML tags (e.g. <style>…</style>, <commands>…</commands>) lets Claude parse section boundaries unambiguously; Anthropic uses this pattern in its own system prompts. Ref: docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags`,
+      });
+    }
+  }
+
+  return { issues, xmlSectionCount };
 }
 
 // Cline: .clinerules/ directory supports YAML frontmatter with 'paths:' for glob scoping.
@@ -896,9 +941,15 @@ function checkFirebenderFormat(config: ParsedConfig): Issue[] {
 
 export function analyzeFormatCompliance(config: ParsedConfig): FormatComplianceResult {
   let issues: Issue[] = [];
+  let xmlSectionCount = 0;
 
   switch (config.platform) {
-    case "claude":     issues = checkClaudeFormat(config);     break;
+    case "claude": {
+      const claudeResult = checkClaudeFormat(config);
+      issues = claudeResult.issues;
+      xmlSectionCount = claudeResult.xmlSectionCount;
+      break;
+    }
     case "cursor":     issues = checkCursorFormat(config);     break;
     case "cline":      issues = checkClineFormat(config);      break;
     case "codex":      issues = checkCodexFormat(config);      break;
@@ -911,7 +962,7 @@ export function analyzeFormatCompliance(config: ParsedConfig): FormatComplianceR
     case "firebender": issues = checkFirebenderFormat(config); break;
   }
 
-  return { issues };
+  return { issues, xmlSectionCount };
 }
 
 function buildIssues(

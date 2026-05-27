@@ -1,0 +1,25 @@
+# E-Commerce Frontend Rules
+
+## Context
+Next.js 14 App Router + TypeScript. Deployed on Vercel. Core packages: Zustand (global state),
+React Query (server state), Zod (schema validation), Tailwind CSS (styling).
+
+Pages live in app/, shared UI in components/shared/, feature-specific components in
+components/features/. Server components are the default — add "use client" only when
+browser APIs or interactivity are required.
+
+## Style
+- Use TypeScript strict mode — tsconfig.json enforces this.
+- Prefer named exports over default exports.
+- Use Tailwind utility classes; avoid inline style attributes or CSS modules.
+- Components must stay under 200 lines; extract sub-components when they grow.
+- Prefer named exports over default exports.
+- Write clean, maintainable code throughout the codebase.
+
+## Rules
+- NEVER store authentication tokens in localStorage — use httpOnly cookies.
+- ALWAYS validate API responses with Zod schemas before consuming data.
+- MUST write a unit test for every custom hook (use Vitest + Testing Library).
+- Use React Server Components for data fetching when the component has no interactivity.
+- Co-locate tests next to the source file (Button.tsx → Button.test.tsx).
+- Keep React Query query keys in a central keys.ts file per feature directory.

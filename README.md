@@ -169,8 +169,43 @@ Every check comes from official documentation — not guesswork.
 - `CLAUDE_PLACEHOLDER_FOUND` — unfilled `[TODO:]` markers left in production config; incomplete directives are worse than omission — the model cannot act on them (warning)
 - `CLAUDE_IMPORT_IN_CODE_BLOCK` — `@`-imports inside fenced code blocks are treated as literal text, not resolved
 - `CLAUDE_SUBDIR_SPLIT_RECOMMENDED` — file over 10 KB with no `@`-imports; Claude Code loads `CLAUDE.md` from every directory it navigates to — split into subdirectory files to reduce per-context token cost
-- **Scorer:** missing build commands carries an extra coverage penalty — runnable commands are the highest-value addition to any `CLAUDE.md`
-- **Optimizer:** adds `## Commands` section with a bash code block stub when commands are missing; flags unfilled `[TODO:]` placeholders with a count
+- `CLAUDE_XML_TAGS_SUGGESTED` — file has ≥3 sections and ≥15 content lines but no XML tag pairs; Anthropic uses XML tags (`<critical_rules>`, `<frontend_aesthetics>`, etc.) directly in its own system prompts to create unambiguous section boundaries — the same layer `CLAUDE.md` occupies. **Zero score penalty** (info only). Ref: [docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags)
+- **Scorer:** missing build commands carries an extra coverage penalty — runnable commands are the highest-value addition to any `CLAUDE.md`; configs that already use ≥2 XML section tag pairs receive a +2/+3 structure bonus (cap raised to 28)
+- **Optimizer:** adds `## Commands` section with a bash code block stub when commands are missing; flags unfilled `[TODO:]` placeholders with a count; wraps consecutive `MUST`/`NEVER`/`CRITICAL`/`FORBIDDEN`/`REQUIRED`/`ALWAYS` lines in `<critical_rules>` blocks when XML structuring is triggered
+
+#### XML tags pattern for CLAUDE.md
+
+Anthropic's prompting docs demonstrate this pattern for system prompts — `CLAUDE.md` is read at the same layer:
+
+```markdown
+# Project Rules
+
+<critical_rules>
+NEVER commit secrets or credentials to the repository.
+ALWAYS run the full test suite before pushing: `npm test`
+MUST use TypeScript strict mode — `tsconfig.json` has `"strict": true`
+</critical_rules>
+
+<commands>
+```bash
+npm run build   # compile TypeScript → dist/
+npm test        # run vitest test suite
+npm run lint    # eslint + tsc --noEmit
+```
+</commands>
+
+<style>
+Use camelCase for variables, PascalCase for types and classes.
+Prefer named exports over default exports.
+</style>
+
+<architecture>
+Layered: parser → analyzer → scorer → optimizer → MCP server.
+Each layer is independently testable with no circular dependencies.
+</architecture>
+```
+
+Without XML tags, Claude must infer which lines are mandatory vs. optional from prose context alone. With tags, semantic roles are explicit — `<critical_rules>` signals what must never be violated, `<style>` signals preferences, `<commands>` signals runnable shell input.
 
 **Cursor**
 - `CURSOR_MISSING_FRONTMATTER` — `.cursor/rules/` files without YAML frontmatter lose scope control entirely; rule applies to nothing

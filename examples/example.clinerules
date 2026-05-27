@@ -1,0 +1,25 @@
+# FastAPI Backend Rules
+
+## Context
+Python 3.12 + FastAPI + PostgreSQL. Routes live in app/routers/, business logic in
+app/services/, database models in app/models/, Pydantic schemas in app/schemas/.
+Alembic handles all schema migrations — never modify tables by hand.
+
+## Architecture
+- Use FastAPI's Depends() for dependency injection throughout.
+- Service layer owns transactions; route handlers must not call session.commit() directly.
+- Use SQLAlchemy 2.0 async sessions — all database calls must be awaited.
+- Pydantic v2 models define every request/response boundary — never use raw dicts at the API layer.
+
+## Style
+- Always annotate every function parameter and return type.
+- Use Ruff for linting and formatting (line length 100, enforced in CI).
+- Use standard patterns for error handling across all services.
+- Prefer async functions throughout; reserve sync functions for CPU-bound helpers only.
+- Use Ruff for linting and formatting (line length 100, enforced in CI).
+
+## Rules
+- NEVER expose raw SQLAlchemy exceptions to API responses — catch and re-raise as HTTPException.
+- NEVER log personally identifiable information (names, emails, IP addresses) at INFO level or above.
+- ALWAYS include a docstring on every public service method describing inputs, outputs, and side effects.
+- MUST run `mypy --strict` and `pytest` before pushing to any branch.

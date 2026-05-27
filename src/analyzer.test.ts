@@ -976,3 +976,154 @@ ${longUrl}
     expect(result.duplicatePhrases).toHaveLength(0);
   });
 });
+
+// --- XML tags suggestion and bonus scoring ---
+
+const COMPLEX_CLAUDE_NO_XML = `# Project Rules
+
+## Commands
+\`\`\`bash
+npm run build
+npm test
+npm run lint
+\`\`\`
+
+## Architecture
+Layered design: parser → analyzer → scorer → optimizer.
+Each layer has a single responsibility and is independently testable.
+
+## Style
+Use camelCase for variables, PascalCase for types and interfaces.
+Prefer named exports over default exports.
+No barrel index.ts files — import directly.
+
+## Rules
+- NEVER commit secrets or API keys to the repository.
+- ALWAYS run the full test suite before pushing.
+- MUST use TypeScript strict mode — tsconfig enforces this.
+- Use 2-space indentation throughout.
+- Write a unit test for every new exported function.
+`;
+
+const COMPLEX_CLAUDE_WITH_XML = `# Project Rules
+
+<commands>
+\`\`\`bash
+npm run build
+npm test
+\`\`\`
+</commands>
+
+<critical_rules>
+NEVER commit secrets to the repository.
+ALWAYS run tests before pushing.
+</critical_rules>
+
+<style>
+Use camelCase for variables, PascalCase for types.
+Prefer named exports over default exports.
+</style>
+
+## Architecture
+Layered design with clear separation.
+Each layer is independently testable.
+`;
+
+describe("CLAUDE_XML_TAGS_SUGGESTED heuristic", () => {
+  it("fires for complex CLAUDE.md with no XML tags (≥3 sections, ≥15 content lines)", () => {
+    const config = parseConfig("CLAUDE.md", COMPLEX_CLAUDE_NO_XML);
+    const result = analyzeFormatCompliance(config);
+    expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(true);
+  });
+
+  it("does not fire when file already has XML tags", () => {
+    const config = parseConfig("CLAUDE.md", COMPLEX_CLAUDE_WITH_XML);
+    const result = analyzeFormatCompliance(config);
+    expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(false);
+  });
+
+  it("does not fire for simple CLAUDE.md with fewer than 3 sections", () => {
+    const simple = `# Rules
+- NEVER commit secrets.
+- ALWAYS run tests.
+Use TypeScript strict mode.
+`;
+    const config = parseConfig("CLAUDE.md", simple);
+    const result = analyzeFormatCompliance(config);
+    expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(false);
+  });
+
+  it("does not fire for CLAUDE.md with fewer than 15 content lines even with enough sections", () => {
+    const thin = `# Rules
+- Rule 1.
+
+## Style
+- Style 1.
+
+## Commands
+\`\`\`bash
+npm test
+\`\`\`
+`;
+    const config = parseConfig("CLAUDE.md", thin);
+    const result = analyzeFormatCompliance(config);
+    expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(false);
+  });
+
+  it("does not fire for non-Claude platforms", () => {
+    const content = COMPLEX_CLAUDE_NO_XML;
+    for (const filename of [".cursorrules", ".clinerules", "AGENTS.md"]) {
+      const config = parseConfig(filename, content);
+      const result = analyzeFormatCompliance(config);
+      expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(false);
+    }
+  });
+
+  it("does not fire when XML tags exist only inside code blocks (false positive guard)", () => {
+    const withXmlInCode = `# Rules
+
+## Commands
+\`\`\`bash
+npm run build
+\`\`\`
+
+## Style
+- Use camelCase.
+- Prefer named exports.
+- No barrel files.
+- Use 2-space indentation.
+- No commented-out code.
+
+## Architecture
+Layered design with clear separation.
+Each layer is independently testable.
+
+## Testing
+Write a test for every exported function.
+All tests must pass before merging.
+Each test must have a descriptive name.
+
+\`\`\`html
+<critical_rules>this is just an html example</critical_rules>
+\`\`\`
+`;
+    const config = parseConfig("CLAUDE.md", withXmlInCode);
+    const result = analyzeFormatCompliance(config);
+    // XML is only inside a code block, so it should still suggest XML structuring
+    expect(result.xmlSectionCount).toBe(0);
+    expect(result.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")).toBe(true);
+  });
+
+  it("returns correct xmlSectionCount for config with multiple tag pairs", () => {
+    const config = parseConfig("CLAUDE.md", COMPLEX_CLAUDE_WITH_XML);
+    const result = analyzeFormatCompliance(config);
+    // <commands>, <critical_rules>, <style> = 3 distinct tag pairs
+    expect(result.xmlSectionCount).toBe(3);
+  });
+
+  it("returns xmlSectionCount=0 for non-Claude platforms regardless of content", () => {
+    const config = parseConfig(".cursorrules", COMPLEX_CLAUDE_WITH_XML);
+    const result = analyzeFormatCompliance(config);
+    expect(result.xmlSectionCount).toBe(0);
+  });
+});

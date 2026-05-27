@@ -1,28 +1,38 @@
+// Lines that contain these VCS-domain words carry a completely different semantic
+// context — "readable history" or "maintainable workflow" is not about code metrics.
+// Patterns tagged skipInVcsContext are skipped on such lines; the original is preserved
+// and the VAGUE_RULE issue in the analysis already flags it for manual rewrite.
+const VCS_CONTEXT_RE = /\b(history|commit(?:s|ted)?|log|branch(?:es)?|merge[ds]?|diff|push(?:ed)?|pull[\s-]?request|changelog|squash|rebase[d]?|tag[s]?)\b/i;
 // Maps vague phrases to concrete alternatives, organized by category.
 // Patterns mirror the VAGUE_PATTERNS in analyzer.ts.
-// Replacements with $1/$2 use JavaScript's native capture-group substitution.
+// skipInVcsContext: true → skip this pattern when the line contains VCS keywords
+//   so code-quality metrics ("cyclomatic complexity ≤ 5") aren't applied to
+//   git-history or workflow sentences where they'd be context-blind.
 const VAGUE_REPLACEMENTS = [
     // --- unmeasurable-quality ---
     { pattern: /\bwrite\s+(good|great|better|clean|quality|nice)\s+code\b/gi, suggestion: "write code that passes all tests and type checks" },
     { pattern: /\b(elegant|robust)\b/gi, suggestion: "[TODO: replace with a measurable criterion]" },
     { pattern: /\bwell[\s-]?(written|structured|organized)\b/gi, suggestion: "[TODO: specify the convention, e.g. follows linting rules, passes type checks]" },
     { pattern: /\bhigh[\s-]?quality\b/gi, suggestion: "verified via tests and linting" },
-    { pattern: /\bmaintainable\b/gi, suggestion: "easy to extend without modifying existing functions" },
-    { pattern: /\breadable\b/gi, suggestion: "self-documenting through naming, not comments" },
+    { pattern: /\bmaintainable\b/gi, suggestion: "[TODO: define what maintainable means, e.g. cyclomatic complexity ≤ 5]", skipInVcsContext: true },
+    { pattern: /\breadable\b/gi, suggestion: "[TODO: define readability criterion, e.g. max line length or complexity limit]", skipInVcsContext: true },
     { pattern: /\bproper(ly)?\b/gi, suggestion: "[TODO: define what correct means in this context]" },
     // --- false-shared-context ---
-    { pattern: /\bfollow\s+best\s+practices\b/gi, suggestion: "follow the conventions defined in this file" },
-    { pattern: /\buse\s+common\s+sense\b/gi, suggestion: "[TODO: define the decision criteria explicitly]" },
-    { pattern: /\buse\s+(your\s+)?judgment\b/gi, suggestion: "[TODO: specify the decision criteria]" },
-    { pattern: /\buse\s+standard\s+patterns?\b/gi, suggestion: "[TODO: name the specific patterns, e.g. repository, factory]" },
+    // Preserve the leading verb so the replacement is grammatically self-contained.
+    { pattern: /\bfollow\s+best\s+practices\b/gi, suggestion: "follow [TODO: name the specific practices, e.g. SOLID, language style guide]" },
+    { pattern: /\buse\s+common\s+sense\b/gi, suggestion: "use [TODO: define the decision criteria explicitly]" },
+    { pattern: /\buse\s+(your\s+)?judgment\b/gi, suggestion: "use [TODO: specify the decision criteria]" },
+    { pattern: /\buse\s+standard\s+patterns?\b/gi, suggestion: "use [TODO: name the specific patterns, e.g. repository, factory]" },
     { pattern: /\bindustry\s+standards?\b/gi, suggestion: "[TODO: reference the specific standard or spec]" },
     { pattern: /\bfollow\s+(the\s+)?conventions?\b/gi, suggestion: "follow the conventions defined in this file" },
     { pattern: /\bconventional\s+(approach|way|method)\b/gi, suggestion: "[TODO: describe the expected approach explicitly]" },
     { pattern: /\bstandard\s+(way|approach|practice)\b/gi, suggestion: "[TODO: name the specific practice]" },
     // --- passive-voice ---
-    { pattern: /\bshould\s+be\s+(done|handled|implemented|addressed|considered|reviewed|tested)\b/gi, suggestion: "must [TODO: specify who performs this action and how]" },
-    { pattern: /\bneeds?\s+to\s+be\s+(handled|done|checked|fixed|resolved|addressed)\b/gi, suggestion: "must [TODO: specify the action and owner]" },
-    { pattern: /\bmust\s+be\s+considered\b/gi, suggestion: "must [TODO: specify the required action]" },
+    // Keep the captured verb ($1) in the replacement so "by the author" / "before release"
+    // clauses remain grammatically attached and nothing is silently dropped.
+    { pattern: /\bshould\s+be\s+(done|handled|implemented|addressed|considered|reviewed|tested)\b/gi, suggestion: "must be $1 [TODO: verify the owner and acceptance criterion]" },
+    { pattern: /\bneeds?\s+to\s+be\s+(handled|done|checked|fixed|resolved|addressed)\b/gi, suggestion: "must be $1 [TODO: specify by whom and under what conditions]" },
+    { pattern: /\bmust\s+be\s+considered\b/gi, suggestion: "must be considered [TODO: define what this means concretely]" },
     { pattern: /\bis\s+expected\s+to\b/gi, suggestion: "must [TODO: rewrite as an active directive]" },
     // --- weak-obligation ---
     { pattern: /\btry\s+to\b/gi, suggestion: "[TODO: use 'always' if required, or remove if optional]" },
@@ -52,8 +62,30 @@ const VAGUE_REPLACEMENTS = [
     { pattern: /\bbe\s+(thorough|careful|diligent|mindful|consistent)\b/gi, suggestion: "[TODO: specify what this means concretely — replace with a verifiable check]" },
     { pattern: /\bpay\s+attention\s+to\b/gi, suggestion: "always verify [TODO: specify what to check]" },
     { pattern: /\bhandle\s+(errors?|edge\s+cases?)\s+properly\b/gi, suggestion: "handle $1 by [TODO: specify the strategy, e.g. log and rethrow / return Result type]" },
-    { pattern: /\bsimple(r|ly)?\b/gi, suggestion: "[TODO: define simplicity criterion, e.g. cyclomatic complexity ≤ 5]" },
+    { pattern: /\bsimple(r|ly)?\b/gi, suggestion: "[TODO: define simplicity criterion, e.g. cyclomatic complexity ≤ 5]", skipInVcsContext: true },
 ];
+// Applies a replacement pattern to a line with two extras over plain string.replace():
+//   1. Manual $1/$2 capture-group substitution (required when the replacer is a function)
+//   2. Leading-case preservation — if the matched text started with an uppercase letter
+//      and the suggestion starts with a lowercase letter, the suggestion is capitalised.
+//      This prevents "Use standard patterns…" → "use [TODO: …]" (lowercase "use").
+function applyPattern(line, pattern, suggestion) {
+    return line.replace(pattern, (...args) => {
+        const match = args[0];
+        // args layout: [fullMatch, cap1?, cap2?, …, offset, inputString]
+        const captures = args.slice(1, args.length - 2);
+        let result = suggestion;
+        captures.forEach((cap, i) => {
+            if (cap !== undefined)
+                result = result.replace(new RegExp(`\\$${i + 1}`, "g"), cap);
+        });
+        // Preserve leading case: if match opened with uppercase but result opens with lowercase
+        if (match.length > 0 && /[A-Z]/.test(match[0]) && result.length > 0 && /[a-z]/.test(result[0])) {
+            result = result[0].toUpperCase() + result.slice(1);
+        }
+        return result;
+    });
+}
 function deduplicateLines(lines) {
     const seen = new Set();
     const result = [];
@@ -75,16 +107,59 @@ function deduplicateLines(lines) {
     }
     return { lines: result, removed };
 }
-function fixVagueRules(content) {
-    let result = content;
+// Guards against replacements that would produce structurally broken output:
+//   • Nested TODO  — [TODO: use 'always' if [TODO: ...] ...]
+//   • Two or more TODOs on one line  — confusing and hard to action
+// Note: "starts with [TODO:" is intentionally NOT checked here. Replacements like
+//   "- [TODO: use 'always' if required…] write tests" are valid — the action phrase
+//   is preserved after the placeholder and the user can act on it. Verb-consuming
+//   patterns (follow/use + vague phrase) are fixed in VAGUE_REPLACEMENTS instead.
+export function isReplacementSafe(replaced) {
+    if (/\[TODO:[^\]]*\[TODO:/.test(replaced))
+        return false;
+    if ((replaced.match(/\[TODO:/g) ?? []).length >= 2)
+        return false;
+    return true;
+}
+// Processes line-by-line with first-match-wins per line to avoid cascading replacements.
+// If a replacement would produce an unsafe result, the original line is preserved and
+// counted as `reverted` (visible in changesSummary — flags it for manual rewrite).
+export function fixVagueRules(content) {
+    const inputLines = content.split("\n");
+    let insideBlock = false;
     let replacements = 0;
-    for (const { pattern, suggestion } of VAGUE_REPLACEMENTS) {
-        const before = result;
-        result = result.replace(pattern, suggestion);
-        if (result !== before)
-            replacements++;
-    }
-    return { content: result, replacements };
+    let reverted = 0;
+    const outputLines = inputLines.map((line) => {
+        if (line.trimStart().startsWith("```")) {
+            insideBlock = !insideBlock;
+            return line;
+        }
+        if (insideBlock)
+            return line;
+        const trimmed = line.trim();
+        if (trimmed.startsWith("#"))
+            return line;
+        if (trimmed.includes("[TODO:"))
+            return line;
+        for (const { pattern, suggestion, skipInVcsContext } of VAGUE_REPLACEMENTS) {
+            // Skip code-quality patterns when the line describes VCS operations — applying
+            // metrics like "cyclomatic complexity" to "keep history readable" is context-blind.
+            if (skipInVcsContext && VCS_CONTEXT_RE.test(line))
+                continue;
+            const replaced = applyPattern(line, pattern, suggestion);
+            if (replaced !== line) {
+                if (isReplacementSafe(replaced)) {
+                    replacements++;
+                    return replaced;
+                }
+                // Replacement would break sentence structure — keep original, note for manual review
+                reverted++;
+                return line;
+            }
+        }
+        return line;
+    });
+    return { content: outputLines.join("\n"), replacements, reverted };
 }
 // Platform-specific hints for each expected section — replaces generic TODO comments.
 const SECTION_HINTS = {
@@ -133,6 +208,12 @@ function addMissingSectionStubs(content, missingSections, platform) {
     const stubs = [];
     const added = [];
     for (const section of missingSections) {
+        // Skip if an XML tag with this exact name already covers the section requirement
+        // (e.g. <style>…</style> satisfies the missing "style" section — adding ## Style
+        // would create a duplicate concept in the document).
+        const escapedName = section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        if (new RegExp(`<${escapedName}(?:\\s[^>]*)?>`, "i").test(content))
+            continue;
         const capitalized = section.charAt(0).toUpperCase() + section.slice(1);
         const hint = platformHints[section] ?? `<!-- TODO: Add ${section} guidance -->`;
         stubs.push(`\n## ${capitalized}\n${hint}`);
@@ -160,6 +241,79 @@ function proseTooBullets(lines) {
         return line;
     });
     return { lines: result, converted };
+}
+// Matches lines where a critical obligation keyword is the first meaningful word,
+// optionally preceded by a list marker (- * •). Case-insensitive so "Always" and
+// "ALWAYS" both qualify — directive-position anchoring prevents mid-sentence prose
+// like "we always prefer…" or TODO text like "[TODO: use 'always' if…]" from matching.
+// Used by both moveCriticalRulesToTop and annotateCriticalRules for consistent behaviour.
+const DIRECTIVE_RE = /^(?:[-*•]\s+)?(?:MUST|NEVER|CRITICAL|FORBIDDEN|REQUIRED|ALWAYS|DO NOT)\b/i;
+export function annotateCriticalRules(content) {
+    const lines = content.split("\n");
+    let insideBlock = false;
+    let blockCount = 0;
+    const result = [];
+    let criticalBuffer = [];
+    // When moveCriticalRulesToTop injects a "## Critical Rules" heading the heading
+    // and the XML tag would both label the same block.  We suppress the heading and
+    // let the XML wrapping handle the semantics — no redundancy, one representation.
+    let suppressNextHeadingOutput = false;
+    const flushBuffer = () => {
+        if (criticalBuffer.length === 0)
+            return;
+        result.push("<critical_rules>");
+        result.push(...criticalBuffer);
+        result.push("</critical_rules>");
+        blockCount++;
+        criticalBuffer = [];
+    };
+    for (const line of lines) {
+        if (line.trimStart().startsWith("```")) {
+            flushBuffer();
+            insideBlock = !insideBlock;
+            result.push(line);
+            continue;
+        }
+        if (insideBlock) {
+            result.push(line);
+            continue;
+        }
+        const trimmed = line.trim();
+        // Headings mark structural boundaries — always flush, then decide whether to emit.
+        if (trimmed.startsWith("#")) {
+            flushBuffer();
+            // Suppress the injected "## Critical Rules" heading — the upcoming
+            // <critical_rules> XML block will carry the same semantic label.
+            if (/^##\s+critical[\s-]*rules?$/i.test(trimmed)) {
+                suppressNextHeadingOutput = true;
+            }
+            else {
+                suppressNextHeadingOutput = false;
+                result.push(line);
+            }
+            continue;
+        }
+        // While inside a suppressed heading's block, blank lines between the heading
+        // and the first directive line should be dropped too (cosmetic).
+        if (suppressNextHeadingOutput && trimmed === "") {
+            continue;
+        }
+        suppressNextHeadingOutput = false;
+        if (DIRECTIVE_RE.test(trimmed)) {
+            criticalBuffer.push(line);
+        }
+        else if (trimmed === "" && criticalBuffer.length > 0) {
+            // Blank line ends a critical block
+            flushBuffer();
+            result.push(line);
+        }
+        else {
+            flushBuffer();
+            result.push(line);
+        }
+    }
+    flushBuffer();
+    return { content: result.join("\n"), blockCount };
 }
 // Fixes @ import paths that are missing a required prefix.
 // Gemini CLI and Amp both require ./ ../ / or ~/ — bare @word is not resolved.
@@ -273,20 +427,20 @@ function applyPlatformOptimizations(content, config, issues) {
     }
     return { content: lines.join("\n"), changes };
 }
-function moveCriticalRulesToTop(lines, issues) {
+export function moveCriticalRulesToTop(lines, issues) {
     const hasAttentionIssue = issues.some((i) => i.code === "ATTENTION_PLACEMENT");
     if (!hasAttentionIssue)
         return { lines, moved: false };
-    const criticalKeywords = /\b(important|critical|never|always|must|required|forbidden|do not|don't)\b/i;
     const firstHeading = lines.findIndex((l) => l.startsWith("#"));
     if (firstHeading === -1)
         return { lines, moved: false };
     const criticalLines = [];
     for (let i = firstHeading + 1; i < lines.length; i++) {
-        // Strip parenthetical content before matching — keywords in descriptions like
-        // "(severity: critical/warning/info)" or "(do/don't rules)" are not imperative rules.
-        const lineWithoutParens = lines[i].replace(/\([^)]*\)/g, "");
-        if (criticalKeywords.test(lineWithoutParens) && !lines[i].startsWith("#")) {
+        const trimmed = lines[i].trim();
+        // DIRECTIVE_RE anchors to directive position (keyword must lead the line), so
+        // mid-sentence prose ("we always prefer…") and TODO text ("[TODO: use 'always' if…]")
+        // are excluded without needing parenthetical-stripping heuristics.
+        if (!trimmed.startsWith("#") && DIRECTIVE_RE.test(trimmed)) {
             criticalLines.push(i);
         }
     }
@@ -317,10 +471,13 @@ export function optimize(config, analysis, scoreResult) {
         changes.push(...platformChanges);
     }
     // Fix vague rules
-    const { content: fixedVague, replacements } = fixVagueRules(content);
+    const { content: fixedVague, replacements, reverted } = fixVagueRules(content);
     if (replacements > 0) {
         content = fixedVague;
         changes.push(`Replaced ${replacements} vague directive(s) with concrete alternatives`);
+    }
+    if (reverted > 0) {
+        changes.push(`${reverted} vague directive(s) skipped — pattern detected but safe auto-rewrite was not possible; manual rewrite needed`);
     }
     // Deduplicate lines
     const { lines: dedupedLines, removed } = deduplicateLines(content.split("\n"));
@@ -333,6 +490,20 @@ export function optimize(config, analysis, scoreResult) {
     if (moved) {
         content = reorderedLines.join("\n");
         changes.push("Moved critical rules (never/always/must) to the top of the file for better LLM attention");
+        // Remove empty XML blocks left behind after their content was relocated by the mover
+        content = content.replace(/<([a-z][a-z0-9_-]*)(?:\s[^>]*)?>[ \t]*\n[ \t]*<\/\1>/gm, "");
+        // Collapse triple+ blank lines that may appear after block removal
+        content = content.replace(/\n{3,}/g, "\n\n");
+    }
+    // For Claude: wrap critical-keyword blocks in <critical_rules> XML tags when structuring is suggested.
+    // Runs after moveCriticalRulesToTop so the annotation follows the final position of the rules —
+    // avoids leaving empty XML blocks behind when the mover has already relocated the content.
+    if (config.platform === "claude" && analysis.issues.some((i) => i.code === "CLAUDE_XML_TAGS_SUGGESTED")) {
+        const { content: annotated, blockCount } = annotateCriticalRules(content);
+        if (blockCount > 0) {
+            content = annotated;
+            changes.push(`Wrapped ${blockCount} critical-rule block(s) in <critical_rules> tags — helps Claude parse mandatory directives distinctly from optional guidance (Anthropic pattern: docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags)`);
+        }
     }
     // Add missing section stubs (platform-aware content hints)
     const { content: withStubs, added } = addMissingSectionStubs(content, analysis.checks.missingSections.missing, config.platform);

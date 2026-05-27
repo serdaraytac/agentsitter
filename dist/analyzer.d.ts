@@ -66,6 +66,7 @@ export interface StructureResult {
 }
 export interface FormatComplianceResult {
     issues: Issue[];
+    xmlSectionCount: number;
 }
 export declare function analyzeTokenCost(config: ParsedConfig, profile?: PlatformProfile): TokenCostResult;
 export declare function analyzeVagueRules(config: ParsedConfig): VagueRulesResult;

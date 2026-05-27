@@ -26,6 +26,10 @@ function scoreClarity(result) {
 // Issues that belong to the coverage domain — excluded from structure scoring to
 // prevent double-counting (they are penalized in scoreCoverage instead).
 const COVERAGE_DOMAIN_CODES = new Set(["CLAUDE_MISSING_BUILD_COMMANDS"]);
+// Pure informational suggestions — carry zero score penalty in all categories.
+// Use for tips that improve quality without signalling a defect (e.g. optional
+// best practices that Anthropic recommends but does not require).
+const NO_SCORE_IMPACT_CODES = new Set(["CLAUDE_XML_TAGS_SUGGESTED"]);
 function scoreStructure(result) {
     const { hasHeadings, headingCount, longParagraphLines, unorganizedRuleCount } = result.checks.structure;
     let score = 25;
@@ -35,9 +39,11 @@ function scoreStructure(result) {
         score -= 5;
     score -= Math.min(10, longParagraphLines.length * 2);
     score -= Math.min(5, Math.floor(unorganizedRuleCount / 2));
-    // Platform-specific format compliance penalties (coverage-domain issues excluded)
+    // Platform-specific format compliance penalties (coverage-domain and no-impact issues excluded)
     for (const issue of result.checks.formatCompliance.issues) {
         if (COVERAGE_DOMAIN_CODES.has(issue.code))
+            continue;
+        if (NO_SCORE_IMPACT_CODES.has(issue.code))
             continue;
         if (issue.severity === "critical")
             score -= 10;
@@ -46,7 +52,14 @@ function scoreStructure(result) {
         else
             score -= 2;
     }
-    return clamp(score);
+    // Bonus for configs that already use XML section tags — cap raised to 28 so the reward
+    // is meaningful even when the base structure score is already near 25.
+    const { xmlSectionCount } = result.checks.formatCompliance;
+    if (xmlSectionCount >= 3)
+        score += 3;
+    else if (xmlSectionCount >= 2)
+        score += 2;
+    return clamp(score, 0, 28);
 }
 function scoreTokenEfficiency(result) {
     const { tokenCount } = result.checks.tokenCost;

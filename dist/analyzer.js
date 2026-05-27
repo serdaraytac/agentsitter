@@ -382,6 +382,27 @@ function findCommandOutsideBlock(config, code, severity, message) {
     }
     return [];
 }
+// Returns the number of distinct XML tag pair names (e.g. <style>…</style>) found outside fenced code blocks.
+// Used both to skip the XML suggestion when tags already exist and to compute the scorer bonus.
+function countXmlSections(config) {
+    let insideBlock = false;
+    const externalLines = [];
+    for (const line of config.lines) {
+        if (line.trimStart().startsWith("```")) {
+            insideBlock = !insideBlock;
+            continue;
+        }
+        if (!insideBlock)
+            externalLines.push(line);
+    }
+    const text = externalLines.join("\n");
+    const tagNames = new Set();
+    // Match only proper closing-tag pairs (not self-closing or HTML void elements) to avoid noise
+    for (const match of text.matchAll(/<([a-z][a-z0-9_-]*)(?:\s[^>]*)?>[\s\S]*?<\/\1>/gim)) {
+        tagNames.add(match[1].toLowerCase());
+    }
+    return tagNames.size;
+}
 // Claude Code: CLAUDE.md is injected into every context window — completeness and token efficiency both matter.
 // Commands must live in fenced code blocks so Claude Code can parse and run them without reading package.json.
 // Supports @-import syntax (@./path.md) to split large files; imports inside code blocks are not resolved.
@@ -389,6 +410,7 @@ function findCommandOutsideBlock(config, code, severity, message) {
 // Source: docs.anthropic.com/en/docs/claude-code/memory
 function checkClaudeFormat(config) {
     const issues = [];
+    const xmlSectionCount = countXmlSections(config);
     // Commands outside code blocks
     const commandIssues = findCommandOutsideBlock(config, "CLAUDE_COMMANDS_NOT_IN_BLOCK", "info", "Claude Code reads build/test commands from fenced code blocks — wrap them in ``` for reliable parsing");
     issues.push(...commandIssues);
@@ -437,7 +459,34 @@ function checkClaudeFormat(config) {
             message: `File is ${config.charCount} characters — Claude Code loads CLAUDE.md from every directory it navigates to; split into subdirectory CLAUDE.md files to reduce per-context token cost and keep rules close to the code they govern`,
         });
     }
-    return issues;
+    // XML structuring suggestion — fires only when file is complex enough to benefit (≥3 sections,
+    // ≥15 content lines) and has no existing XML tags outside code blocks.
+    // Anthropic's own prompting best-practices page uses XML tags (<critical_rules>, <frontend_aesthetics>,
+    // etc.) directly in system prompts — the same layer CLAUDE.md occupies.
+    // Severity is "info"; no score penalty (see NO_SCORE_IMPACT_CODES in scorer.ts).
+    if (xmlSectionCount === 0) {
+        let insideBlock2 = false;
+        let contentLineCount = 0;
+        for (const line of config.lines) {
+            if (line.trimStart().startsWith("```")) {
+                insideBlock2 = !insideBlock2;
+                continue;
+            }
+            if (insideBlock2)
+                continue;
+            const t = line.trim();
+            if (t && !t.startsWith("#"))
+                contentLineCount++;
+        }
+        if (config.sections.length >= 3 && contentLineCount >= 10) {
+            issues.push({
+                code: "CLAUDE_XML_TAGS_SUGGESTED",
+                severity: "info",
+                message: `CLAUDE.md has ${config.sections.length} sections — wrapping rule groups in XML tags (e.g. <style>…</style>, <commands>…</commands>) lets Claude parse section boundaries unambiguously; Anthropic uses this pattern in its own system prompts. Ref: docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags`,
+            });
+        }
+    }
+    return { issues, xmlSectionCount };
 }
 // Cline: .clinerules/ directory supports YAML frontmatter with 'paths:' for glob scoping.
 // Critical distinction: Cline uses 'paths:' (not 'globs:' — that is Cursor's key, silently ignored by Cline).
@@ -729,10 +778,14 @@ function checkFirebenderFormat(config) {
 }
 export function analyzeFormatCompliance(config) {
     let issues = [];
+    let xmlSectionCount = 0;
     switch (config.platform) {
-        case "claude":
-            issues = checkClaudeFormat(config);
+        case "claude": {
+            const claudeResult = checkClaudeFormat(config);
+            issues = claudeResult.issues;
+            xmlSectionCount = claudeResult.xmlSectionCount;
             break;
+        }
         case "cursor":
             issues = checkCursorFormat(config);
             break;
@@ -764,7 +817,7 @@ export function analyzeFormatCompliance(config) {
             issues = checkFirebenderFormat(config);
             break;
     }
-    return { issues };
+    return { issues, xmlSectionCount };
 }
 function buildIssues(tokenCost, vagueRules, missingSections, duplicates, attention, structure, formatCompliance) {
     const issues = [];

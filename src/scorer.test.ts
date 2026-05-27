@@ -145,3 +145,121 @@ describe("score", () => {
     expect(fullScore.categories.coverage - partialScore.categories.coverage).toBe(5);
   });
 });
+
+describe("XML tags scoring", () => {
+  // A well-structured CLAUDE.md that uses XML tags inside markdown sections (3 distinct pairs).
+  // Markdown headings kept alongside XML so the heading-count check doesn't penalise this config.
+  const XML_STRUCTURED = `# Project Rules
+
+## Commands
+\`\`\`bash
+npm run build
+npm test
+npm run lint
+\`\`\`
+
+## Architecture
+
+<architecture_overview>
+Layered design: parser → analyzer → scorer → optimizer.
+Each layer is independently testable.
+</architecture_overview>
+
+<critical_rules>
+NEVER commit secrets or API keys to the repository.
+ALWAYS run the full test suite before pushing.
+MUST use TypeScript strict mode.
+</critical_rules>
+
+<style>
+Use camelCase for variables, PascalCase for types.
+Prefer named exports over default exports.
+No barrel index.ts files.
+</style>
+`;
+
+  // Equivalent content without XML tags — triggers CLAUDE_XML_TAGS_SUGGESTED (info, no penalty)
+  const SAME_NO_XML = `# Project Rules
+
+## Commands
+\`\`\`bash
+npm run build
+npm test
+npm run lint
+\`\`\`
+
+## Architecture
+Layered design: parser → analyzer → scorer → optimizer.
+Each layer is independently testable with no circular dependencies.
+Separation of concerns enforced at each boundary.
+
+## Rules
+NEVER commit secrets or API keys to the repository.
+ALWAYS run the full test suite before pushing.
+MUST use TypeScript strict mode — tsconfig enforces this.
+Use camelCase for variables, PascalCase for types.
+Prefer named exports over default exports.
+No barrel index.ts files.
+Write a unit test for every exported function.
+`;
+
+  it("CLAUDE_XML_TAGS_SUGGESTED carries no score penalty", () => {
+    // The suggestion must be pure info — the no-XML file should not score lower on structure
+    // than an equivalent file that has no suggestion at all (i.e. a short file below threshold).
+    const shortConfig = `# Rules
+
+## Commands
+\`\`\`bash
+npm test
+\`\`\`
+
+## Style
+Use 2-space indent.
+`;
+    const complexScore = score(analyze(parseConfig("CLAUDE.md", SAME_NO_XML))).categories.structure;
+    const shortScore   = score(analyze(parseConfig("CLAUDE.md", shortConfig))).categories.structure;
+    // Both should score the same on structure (short file has no penalty either)
+    // The complex file triggers CLAUDE_XML_TAGS_SUGGESTED but must NOT be penalised
+    expect(complexScore).toBe(shortScore);
+  });
+
+  it("awards +2 structure bonus for ≥2 XML tag pairs", () => {
+    const twoTags = `# Project
+
+<style>
+Use camelCase.
+No barrel files.
+</style>
+
+<commands>
+\`\`\`bash
+npm test
+\`\`\`
+</commands>
+
+## Architecture
+Layered design.
+`;
+    const withXml    = score(analyze(parseConfig("CLAUDE.md", twoTags))).categories.structure;
+    const withoutXml = score(analyze(parseConfig("CLAUDE.md", SAME_NO_XML))).categories.structure;
+    expect(withXml).toBeGreaterThan(withoutXml);
+  });
+
+  it("awards +3 structure bonus for ≥3 XML tag pairs", () => {
+    const xmlScore    = score(analyze(parseConfig("CLAUDE.md", XML_STRUCTURED))).categories.structure;
+    const noXmlScore  = score(analyze(parseConfig("CLAUDE.md", SAME_NO_XML))).categories.structure;
+    expect(xmlScore - noXmlScore).toBeGreaterThanOrEqual(3);
+  });
+
+  it("structure score can exceed 25 (cap is 28) for XML-structured configs", () => {
+    const result = score(analyze(parseConfig("CLAUDE.md", XML_STRUCTURED)));
+    expect(result.categories.structure).toBeGreaterThan(25);
+    expect(result.categories.structure).toBeLessThanOrEqual(28);
+  });
+
+  it("overall score stays within 0-100 even when structure exceeds 25", () => {
+    const result = score(analyze(parseConfig("CLAUDE.md", XML_STRUCTURED)));
+    expect(result.overall).toBeGreaterThanOrEqual(0);
+    expect(result.overall).toBeLessThanOrEqual(100);
+  });
+});
